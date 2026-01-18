@@ -33,7 +33,8 @@
 
         <div class="hero-content">
             <span class="hero-tag">Cloud Infrastructure Engineer</span>
-            <h1>Atharva <span class="gradient-text">Jadhav</span></h1>
+            <h1><span id="first-name"></span>
+                <span class="gradient-text" id="last-name"></span></h1>
             <p>
                 Building scalable cloud infrastructure with Azure, DevOps,
                 and automation-first mindset.
@@ -477,6 +478,43 @@
     }
   });
 </script>
+<script>
+  const firstName = "Atharva ";
+  const lastName = "Jadhav";
+
+  const firstEl = document.getElementById("first-name");
+  const lastEl = document.getElementById("last-name");
+
+  let i = 0;
+  let j = 0;
+
+  firstEl.classList.add("typing");
+
+  function typeFirstName() {
+    if (i < firstName.length) {
+      firstEl.textContent += firstName.charAt(i);
+      i++;
+      setTimeout(typeFirstName, 90);
+    } else {
+      firstEl.classList.remove("typing");
+      lastEl.classList.add("typing");
+      setTimeout(typeLastName, 200);
+    }
+  }
+
+  function typeLastName() {
+    if (j < lastName.length) {
+      lastEl.textContent += lastName.charAt(j);
+      j++;
+      setTimeout(typeLastName, 90);
+    } else {
+      lastEl.classList.remove("typing"); // cursor disappears
+    }
+  }
+
+  typeFirstName();
+</script>
+
 
 
 </body>

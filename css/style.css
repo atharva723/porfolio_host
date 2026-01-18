@@ -325,6 +325,20 @@ nav.scrolled {
     gap: 1.2rem;
 }
 
+/* Name typing cursor */
+.typing::after {
+  content: "|";
+  margin-left: 6px;
+  animation: blink 1s infinite;
+  opacity: 0.8;
+}
+
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0; }
+}
+
+
 .btn {
     padding: 0.9rem 2rem;
     border-radius: 50px;
