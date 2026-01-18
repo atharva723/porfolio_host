@@ -24,17 +24,7 @@
         }
         
 
-        /* body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
-             
-            color: var(--primary);
-            line-height: 1.6;
-            overflow-x: hidden;
-            background: #050a14;
-            color: #e5e7eb;
-            
-           
-        }  */
+        
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
@@ -47,20 +37,7 @@ body {
     color: var(--text-primary);
 }
 
-        /* Navigation */
-      /* nav {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        height: 80px;
-        background: transparent;  
-       
-        z-index: 1000;
-       
-        border-bottom: 0px solid var(--border-soft);
-
-        
-} */
+     
 
 nav {
     position: fixed;
@@ -78,8 +55,6 @@ nav.scrolled {
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid rgba(255, 178, 44, 0.15); /* subtle accent */
 }
-
-
 
 
         .nav-container {
@@ -140,25 +115,6 @@ nav.scrolled {
 }
 
  
-/* 
-.hero::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 160px;
-    background: linear-gradient(
-        to bottom,
-        rgba(5, 10, 20, 0) 0%,
-        rgba(5, 10, 20, 0.6) 50%,
-        rgba(5, 10, 20, 1) 100%
-    );
-    z-index: 2;
-    pointer-events: none;
-} */
-
-
 .hero::after {
     content: "";
     position: absolute;
@@ -175,63 +131,6 @@ nav.scrolled {
     pointer-events: none;
     z-index: 2;
 }
-
- 
-
-/* Background image + directional gradient */
-/* .hero-bg {
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(
-            to right,
-            rgba(5, 10, 20, 0.92) 0%,
-            rgba(5, 10, 20, 0.80) 32%,
-            rgba(5, 10, 20, 0.48) 55%,
-            rgba(5, 10, 20, 0.18) 70%,
-            rgba(0, 0, 0, 0) 88%
-        ),
-        url("../port.png");
-
-    background-size: cover;
-        background-size: contain;
-    background-repeat: no-repeat;
-    background-position: right center;
-    background-color: #050a14;
-    filter: brightness(1.12) contrast(1.08);
-    z-index: 1;
-} */
-/* .hero-bg {
-    position: absolute;
-    inset: 0;
-    background:
-       
-        linear-gradient(
-            to bottom,
-            rgba(0, 0, 0, 0) 55%,
-            rgba(0, 0, 0, 0.65) 80%,
-            rgba(0, 0, 0, 1) 100%
-        ),
-
-        
-        linear-gradient(
-            to right,
-            rgba(5, 10, 20, 0.92) 0%,
-            rgba(5, 10, 20, 0.80) 32%,
-            rgba(5, 10, 20, 0.48) 55%,
-            rgba(5, 10, 20, 0.18) 70%,
-            rgba(0, 0, 0, 0) 88%
-        ),
-
-        url("../port.png");
-
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: right center;
-    background-color: #050a14;
-    filter: brightness(1.12) contrast(1.08);
-    z-index: 1;
-} */
 
 .hero-bg {
     position: absolute;
@@ -350,10 +249,7 @@ nav.scrolled {
     transition: all 0.3s ease;
 }
 
-/* .btn-primary {
-    background: #0a0a0a;
-    color: #ffffff;
-} */
+
 
 .btn-primary {
     background: linear-gradient(135deg, #111827, #020617);
@@ -377,10 +273,7 @@ nav.scrolled {
     background: #111111;
 }
 
-/* .btn-secondary {
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: #ffffff;
-} */
+
 
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -527,19 +420,7 @@ nav.scrolled {
             grid-template-columns: repeat(4, 1fr);
             gap: 3.5rem;
         }
-/* 
-        .skill-card {
-            padding: 2.5rem;
-            background: var(--light-gray);
-            border-radius: 20px;
-            transition: all 0.3s;
-            text-align: center;
-        }
 
-        .skill-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
-        } */
          .skill-card {
             background: var(--bg-card);
             backdrop-filter: blur(12px);
@@ -645,11 +526,7 @@ nav.scrolled {
             background: rgba(255, 178, 44, 0.12);
             color: var(--accent);
         }
-         /* .tech-tag {
-    background: rgba(255,255,255,0.08);
-    color: var(--text-primary);
-} */
-
+       
 
         .project-visual {
             width: 100%;
@@ -885,137 +762,125 @@ nav.scrolled {
                 flex-direction: column;
             }
         }
-
-/* =====================================================
-   MOBILE & TABLET RESPONSIVE (UNIFIED)
-   ===================================================== */
-
+/* =========================================
+   MOBILE STRUCTURE FIX (SAFE OVERRIDES)
+   ========================================= */
 @media (max-width: 768px) {
-
-  /* ---------- GLOBAL ---------- */
-  body {
-    overflow-x: hidden;
-  }
-
-  section {
-    padding: 64px 16px;
-  }
-
-  h1 {
-    font-size: 2.2rem;
-    line-height: 1.2;
-  }
-
-  h2 {
-    font-size: 1.9rem;
-  }
-
-  p {
-    font-size: 1rem;
-    line-height: 1.6;
-  }
-
-  /* ---------- NAVBAR ---------- */
-  nav {
-    height: 64px;
-    padding: 0 16px;
-  }
-
-  nav .nav-links {
-    display: none; /* safe default */
-  }
-
-  nav .logo {
-    font-size: 1.1rem;
-  }
 
   /* ---------- HERO ---------- */
   .hero {
-    min-height: 100vh;
-    padding: 100px 16px 64px;
+    min-height: 100svh;
+    padding-top: 88px;
+  }
+
+  .hero-bg {
+    background-size: cover;        /* stop awkward cropping */
+    background-position: center top;
+    filter: brightness(0.85);
   }
 
   .hero-content {
+    padding: 324px 20px 0;
     max-width: 100%;
   }
 
-  .hero h1 {
-    font-size: 2.4rem;
+  .hero-tag {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.8rem;
+    margin-bottom: 1rem;
   }
 
-  .hero p {
-    max-width: 100%;
-    font-size: 1rem;
+  .hero-content h1 {
+    font-size: 2.2rem;   /* 🔥 key fix */
+    line-height: 1.15;
+    margin-bottom: 0.8rem;
   }
 
-  .hero-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 24px;
+  .hero-content p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.8rem;
+    max-width: 92%;
   }
 
-  .hero-buttons a {
+  .hero-cta {
+    gap: 0.8rem;
+  }
+
+  .btn {
     width: 100%;
-    text-align: center;
+    justify-content: center;
+    padding: 0.8rem 1.5rem;
+  }
+
+  /* ---------- SECTION RHYTHM ---------- */
+  section:not(.hero) {
+    padding: 64px 20px;
+  }
+
+  .section-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    line-height: 1.25;
   }
 
   /* ---------- ABOUT ---------- */
-  .about-content {
-    grid-template-columns: 1fr;
-    gap: 24px;
+  .about-text p {
+    font-size: 1rem;
+    line-height: 1.65;
   }
 
   /* ---------- SKILLS ---------- */
   .skills-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 1.25rem;
   }
 
   .skill-card {
+    height: auto;
     padding: 20px;
+    text-align: center;
+  }
+
+  .skill-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.8rem;
   }
 
   /* ---------- PROJECTS ---------- */
-  .projects-grid {
+  .project-card {
     grid-template-columns: 1fr;
-    gap: 24px;
+    padding: 1.8rem;
+    gap: 1.5rem;
   }
 
-  .project-card {
-    flex-direction: column;
+  .project-info h3 {
+    font-size: 1.4rem;
+  }
+
+  .project-info p {
+    font-size: 0.95rem;
+    line-height: 1.6;
   }
 
   .project-visual {
-    width: 100%;
-    height: 180px;
-    margin-top: 16px;
+    height: 160px;
+    font-size: 3.2rem;
   }
 
   /* ---------- EXPERIENCE ---------- */
   .experience-card {
-    padding: 20px;
+    padding: 1.8rem;
   }
 
-  .experience-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  .experience-card h3 {
+    font-size: 1.4rem;
   }
 
-  .experience-date {
-    font-size: 0.85rem;
-    opacity: 0.75;
-  }
-
-  /* ---------- CTA / CONTACT ---------- */
-  .contact-buttons,
-  .hero-buttons {
-    flex-direction: column;
-  }
-
-  .contact-buttons a,
-  .hero-buttons a {
-    width: 100%;
+  .experience-card li {
+    font-size: 0.95rem;
   }
 }
