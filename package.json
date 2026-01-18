@@ -1,0 +1,16 @@
+{
+  "name": "proj_atharva",
+  "version": "1.0.0",
+  "description": "Static site hosted with Node.js Express",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"No tests\""
+  },
+  "author": "Atharva",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
