@@ -155,6 +155,33 @@ if (counters.length) {
 const progressBar = document.getElementById('scrollProgress');
 const scrollTopBtn = document.getElementById('scrollTop');
 
+// Parallax cinematic hero (zoom + blur + fade on scroll)
+const heroBg = document.getElementById('heroBg');
+const heroBaseFilter = 'brightness(1.12) contrast(1.08)';
+
+// Stacked project cards (scroll-pinned deck — ported from GSAP ScrollTrigger)
+const stackCards = Array.from(document.querySelectorAll('.projects-stack .project-card'));
+
+function updateProjectStack() {
+    if (!stackCards.length || reduceMotion) return;
+    const centerY = window.innerHeight / 2;
+
+    stackCards.forEach(card => {
+        const item = card.parentElement; // .project-stack-item (the trigger)
+        const index = parseInt(card.dataset.stackIndex, 10) || 0;
+        const total = parseInt(card.dataset.stackTotal, 10) || 1;
+        const targetScale = 1 - (total - index) * 0.05;
+
+        const rect = item.getBoundingClientRect();
+        // progress: 0 when item top reaches viewport center, 1 when item bottom does
+        let progress = (centerY - rect.top) / rect.height;
+        progress = Math.min(Math.max(progress, 0), 1);
+
+        const scale = 1 + (targetScale - 1) * progress; // interpolate 1 → targetScale
+        card.style.transform = `scale(${Math.max(scale, targetScale).toFixed(4)})`;
+    });
+}
+
 function onScrollUI() {
     const scrollTop = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -165,6 +192,22 @@ function onScrollUI() {
     if (scrollTopBtn) {
         scrollTopBtn.classList.toggle('visible', scrollTop > 500);
     }
+
+    // Parallax: as you scroll through the hero, the backdrop slowly
+    // zooms in, blurs and fades — same mechanism as the React effect.
+    if (heroBg && !reduceMotion) {
+        const heroHeight = window.innerHeight;
+        const progress = Math.min(scrollTop / heroHeight, 1); // 0 → 1 across the hero
+        const scale = 1 + progress * 0.18;        // 1 → 1.18 zoom
+        const blur = progress * 8;                 // 0 → 8px blur
+        const opacity = 1 - progress * 0.85;       // 1 → 0.15 fade
+
+        heroBg.style.transform = `scale(${scale.toFixed(4)})`;
+        heroBg.style.filter = `${heroBaseFilter} blur(${blur.toFixed(2)}px)`;
+        heroBg.style.opacity = opacity.toFixed(3);
+    }
+
+    updateProjectStack();
 }
 
 window.addEventListener('scroll', onScrollUI, { passive: true });

@@ -73,38 +73,43 @@ const portfolioData = {
         title: "Flask OCR Application – Docker & Azure Deployment",
         description: "Built and deployed a production-ready OCR web application using Flask, containerized with Docker and hosted on Azure App Service. Implemented CI/CD automation using GitHub Actions to enable seamless build and deployment workflows.",
         icon: "fas fa-server",
-        tech: ["Python", "Flask", "Docker", "Azure App Service", "GitHub Actions", "OCR"]
-        // Optional: add a link with  ,link: "https://github.com/you/repo"
+        tech: ["Python", "Flask", "Docker", "Azure App Service", "GitHub Actions", "OCR"],
+        link: "https://github.com/atharvajadhav"  // ← replace with the real repo URL
       },
       {
         title: "Containerized Application Deployment on Azure AKS",
         description: "Designed and implemented a production-ready Kubernetes deployment on Azure AKS using a Blue-Green strategy to achieve zero-downtime releases. Automated the complete container lifecycle with Azure DevOps CI/CD pipelines, integrated vulnerability scanning, and enforced enterprise-grade security, scalability, and observability.",
         icon: "fas fa-network-wired",
-        tech: ["Azure AKS", "Kubernetes", "Azure DevOps", "Docker", "ACR", "Blue-Green Deployment"]
+        tech: ["Azure AKS", "Kubernetes", "Azure DevOps", "Docker", "ACR", "Blue-Green Deployment"],
+        link: "https://github.com/atharvajadhav"  // ← replace with the real repo URL
       },
       {
         title: "Weather Dashboard – Microservices Architecture",
         description: "Designed and developed a full-stack weather application using a microservices architecture. Implemented an API Gateway with JWT-based authentication, service-to-service communication, and real-time weather data integration, along with a visually rich and animated frontend.",
         icon: "fas fa-cloud-sun",
-        tech: ["Python", "Flask", "Microservices", "JWT Auth", "API Gateway", "Open-Meteo API"]
+        tech: ["Python", "Flask", "Microservices", "JWT Auth", "API Gateway", "Open-Meteo API"],
+        link: "https://github.com/atharvajadhav"  // ← replace with the real repo URL
       },
       {
         title: "CinePlex – AI-Powered Movie Discovery Platform",
         description: "Built an AI-driven movie discovery platform that recommends films based on semantic story similarity rather than traditional genre or rating filters. Leveraged NLP sentence embeddings to analyze movie narratives and deliver context-aware, emotionally aligned recommendations through a modern full-stack web application.",
         icon: "fas fa-film",
-        tech: ["Python", "Flask", "React", "NLP", "Sentence Transformers", "TMDB API"]
+        tech: ["Python", "Flask", "React", "NLP", "Sentence Transformers", "TMDB API"],
+        link: "https://github.com/atharvajadhav"  // ← replace with the real repo URL
       },
       {
         title: "Clothing Store – Full-Stack E-Commerce Application",
         description: "Developed a full-stack e-commerce application simulating a real clothing brand platform. Implemented complete backend-driven cart and order workflows, relational database design, and REST APIs while handling real-world debugging challenges that arise from frontend–backend interaction and persistent data storage.",
         icon: "fas fa-shopping-bag",
-        tech: ["HTML", "CSS", "JavaScript", "Node.js", "Express", "SQLite"]
+        tech: ["HTML", "CSS", "JavaScript", "Node.js", "Express", "SQLite"],
+        link: "https://github.com/atharvajadhav"  // ← replace with the real repo URL
       },
       {
         title: "AI Study Prep Platform – PDF to Intelligent Quizzes",
         description: "Built an AI-powered study preparation platform that transforms PDF documents into adaptive, interview-focused quizzes. Integrated Google Gemini AI for automated question generation, implemented difficulty-based assessments, and designed a full-stack system with persistent storage, real-time scoring, and performance tracking.",
         icon: "fas fa-graduation-cap",
-        tech: ["Python", "Flask", "Google Gemini AI", "NLP", "SQLite", "PDF Processing"]
+        tech: ["Python", "Flask", "Google Gemini AI", "NLP", "SQLite", "PDF Processing"],
+        link: "https://github.com/atharvajadhav"  // ← replace with the real repo URL
       }
     ]
   },

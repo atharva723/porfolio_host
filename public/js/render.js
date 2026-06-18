@@ -75,20 +75,30 @@
 
     const grid = $("projectsGrid");
     if (grid && Array.isArray(d.projects.items)) {
-      grid.innerHTML = d.projects.items.map(p => {
+      const total = d.projects.items.length;
+      grid.innerHTML = d.projects.items.map((p, i) => {
         const tech = (p.tech || []).map(t => `<span class="tech-tag">${t}</span>`).join("");
-        const title = p.link
-          ? `<h3><a href="${p.link}" target="_blank" rel="noopener" class="project-title-link">${p.title}</a></h3>`
-          : `<h3>${p.title}</h3>`;
+        const title = `<h3>${p.title}</h3>`;
+        const button = p.link
+          ? `<a href="${p.link}" target="_blank" rel="noopener" class="pearl-button" aria-label="View ${p.title} on GitHub">
+               <span class="pearl-wrap">
+                 <i class="fab fa-github"></i>
+                 <span class="pearl-label">View Code</span>
+               </span>
+             </a>`
+          : "";
         return `
-          <div class="project-card">
-            <div class="project-info">
-              ${title}
-              <p>${p.description}</p>
-              <div class="tech-stack">${tech}</div>
-            </div>
-            <div class="project-visual">
-              <i class="${p.icon}"></i>
+          <div class="project-stack-item" style="--i:${i};">
+            <div class="project-card" data-stack-index="${i}" data-stack-total="${total}">
+              <div class="project-info">
+                ${title}
+                <p>${p.description}</p>
+                <div class="tech-stack">${tech}</div>
+                ${button}
+              </div>
+              <div class="project-visual">
+                <i class="${p.icon}"></i>
+              </div>
             </div>
           </div>`;
       }).join("");

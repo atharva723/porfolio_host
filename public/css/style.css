@@ -297,6 +297,8 @@ nav.scrolled {
     background-color: #000000;
 
     filter: brightness(1.12) contrast(1.08);
+    transform-origin: 75% 35%;
+    will-change: transform, filter, opacity;
     z-index: 1;
 }
 
@@ -751,6 +753,139 @@ nav.scrolled {
         @keyframes floatIcon {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-12px); }
+        }
+
+        /* ---- Stacked card deck (scroll-pinned) ---- */
+        .projects-grid.projects-stack {
+            display: block;
+            gap: 0;
+            position: relative;
+        }
+
+        .project-stack-item {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .projects-stack .project-card {
+            position: relative;
+            width: min(960px, 92%);
+            max-width: 960px;
+            min-height: 420px;
+            margin: 0;
+            top: calc(var(--i) * 26px);
+            transform-origin: center top;
+            transition: none;
+            will-change: transform;
+            pointer-events: auto;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(18px) saturate(160%);
+            -webkit-backdrop-filter: blur(18px) saturate(160%);
+        }
+
+        /* In stacked mode, hover lift would fight the scroll transform — keep it static */
+        .projects-stack .project-card:hover {
+            transform: none;
+            border-color: rgba(255, 178, 44, 0.3);
+        }
+
+        /* ---- Pearl / GitHub link button ---- */
+        .pearl-button {
+            --pearl-bg: #1a1206;
+            display: inline-flex;
+            margin-top: 2rem;
+            border: 0;
+            outline: none;
+            cursor: pointer;
+            text-decoration: none;
+            border-radius: 100px;
+            background-color: var(--pearl-bg);
+            transition: all 0.2s ease;
+            box-shadow:
+                inset 0 0.25rem 0.7rem rgba(255, 178, 44, 0.35),
+                inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.7),
+                inset 0 -0.35rem 0.7rem rgba(255, 178, 44, 0.4),
+                0 1.4rem 1.4rem rgba(0, 0, 0, 0.3),
+                0 0.5rem 0.5rem -0.4rem rgba(0, 0, 0, 0.8);
+        }
+
+        .pearl-button .pearl-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.85rem 1.6rem;
+            border-radius: inherit;
+            overflow: hidden;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--accent);
+            transition: transform 0.2s ease;
+        }
+
+        .pearl-button .pearl-wrap::before {
+            content: "";
+            position: absolute;
+            left: -15%;
+            right: -15%;
+            top: -100%;
+            bottom: 25%;
+            border-radius: 50%;
+            background-color: rgba(255, 178, 44, 0.15);
+            transition: transform 0.3s ease;
+            pointer-events: none;
+        }
+
+        .pearl-button .pearl-wrap::after {
+            content: "";
+            position: absolute;
+            left: 6%;
+            right: 6%;
+            top: 12%;
+            bottom: 40%;
+            border-radius: 22px 22px 0 0;
+            box-shadow: inset 0 10px 8px -10px rgba(255, 200, 120, 0.6);
+            background: linear-gradient(180deg, rgba(255, 178, 44, 0.25) 0%, rgba(0, 0, 0, 0) 55%);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .pearl-button .pearl-wrap i,
+        .pearl-button .pearl-label {
+            position: relative;
+            z-index: 1;
+        }
+
+        .pearl-button .pearl-wrap i {
+            font-size: 1.05rem;
+        }
+
+        .pearl-button:hover {
+            box-shadow:
+                inset 0 0.25rem 0.5rem rgba(255, 178, 44, 0.5),
+                inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.7),
+                inset 0 -0.35rem 0.7rem rgba(255, 178, 44, 0.6),
+                0 1.4rem 1.4rem rgba(0, 0, 0, 0.3),
+                0 0.5rem 0.5rem -0.4rem rgba(0, 0, 0, 0.8);
+        }
+
+        .pearl-button:hover .pearl-wrap { transform: translateY(-2px); }
+        .pearl-button:hover .pearl-wrap::before { transform: translateY(-5%); }
+        .pearl-button:hover .pearl-wrap::after { opacity: 0.4; transform: translateY(5%); }
+
+        .pearl-button:active {
+            transform: translateY(3px);
+            box-shadow:
+                inset 0 0.25rem 0.5rem rgba(255, 178, 44, 0.55),
+                inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.8),
+                inset 0 -0.35rem 0.7rem rgba(255, 178, 44, 0.4),
+                0 1.4rem 1.4rem rgba(0, 0, 0, 0.3),
+                0 0.5rem 0.5rem -0.4rem rgba(0, 0, 0, 0.8);
         }
 
         /* Experience Section */
@@ -1222,6 +1357,25 @@ nav.scrolled {
     padding: 1.5rem;
     gap: 1.2rem;
     border-radius: 20px;
+  }
+
+  /* Disable the scroll-pinned deck on small screens — use normal stacked flow */
+  .project-stack-item {
+    position: static;
+    height: auto;
+    display: block;
+    pointer-events: auto;
+    margin-bottom: 1.5rem;
+  }
+
+  .projects-stack .project-card {
+    width: 100%;
+    min-height: 0;
+    top: 0;
+    transform: none !important;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .project-info h3 {
