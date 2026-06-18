@@ -175,4 +175,11 @@ const portfolioData = {
 };
 
 // Makes the data available to render.js and script.js (do not remove)
-window.portfolioData = portfolioData;
+if (typeof window !== "undefined") {
+  window.portfolioData = portfolioData;
+}
+
+// Lets the server (lib/knowledge.js) reuse this same data as the chat knowledge base.
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = portfolioData;
+}
