@@ -9,7 +9,7 @@ if (process.env.NODE_ENV !== "production") {
   }
 }
 
-const { buildSystemPrompt } = require("./lib/knowledge");
+const { buildSystemPrompt, buildGuardReminder, REFUSAL } = require("./lib/knowledge");
 const { generateReply, LLMError } = require("./lib/llm");
 
 const app = express();
@@ -57,6 +57,28 @@ function sanitize(text) {
   return String(text).replace(/\s+/g, " ").trim();
 }
 
+// Cheap first line of defense: catch blatant jailbreak / prompt-injection /
+// system-prompt-extraction / off-topic-generation attempts and refuse them
+// WITHOUT spending an LLM call. These patterns are extremely unlikely in a
+// genuine question about a person, so false positives are rare.
+const INJECTION_PATTERNS = [
+  /ignore\s+(all\s+|the\s+)?(previous|above|prior|earlier)\s+(instructions?|prompts?|messages?|rules?)/i,
+  /disregard\s+(all\s+|the\s+)?(previous|above|prior|your)\s+/i,
+  /forget\s+(everything|all|your)\s+(you\s+know|instructions?|rules?|above)/i,
+  /\b(system|developer)\s*(prompt|message|instructions?)\b/i,
+  /\b(reveal|show|print|repeat|output|display|tell me|give me)\b.{0,40}\b(prompt|instructions?|rules?|system message|knowledge base)\b/i,
+  /\b(repeat|print|echo|say)\b.{0,30}\b(the\s+)?(text|words|everything)\s+above\b/i,
+  /\byou\s+are\s+now\b|\bact\s+as\b|\bpretend\s+to\s+be\b|\bfrom\s+now\s+on\b/i,
+  /\b(developer|dan|jailbreak|god|admin|sudo|root)\s*mode\b|\bdo\s+anything\s+now\b|\bDAN\b/,
+  /\b(write|generate|create|give|show|fix|debug|explain|complete)\b.{0,30}\b(code|program|script|function|snippet|algorithm|regex|sql query)\b/i,
+  /\b(translate|rewrite|summarize|paraphrase)\b.{0,30}\b(this|the following|above|into)\b/i,
+  /override\s+(your|the|all)\s+(instructions?|rules?|settings?)/i,
+];
+
+function looksLikeInjection(text) {
+  return INJECTION_PATTERNS.some((re) => re.test(text));
+}
+
 app.post("/api/chat", async (req, res) => {
   try {
     const ip =
@@ -82,6 +104,11 @@ app.post("/api/chat", async (req, res) => {
         .json({ error: `Message is too long (max ${MAX_MESSAGE_CHARS} characters).` });
     }
 
+    // Short-circuit obvious injection / out-of-scope generation attempts.
+    if (looksLikeInjection(cleanMessage)) {
+      return res.json({ reply: REFUSAL });
+    }
+
     // Build a clean, validated conversation history.
     const safeHistory = Array.isArray(history)
       ? history
@@ -98,7 +125,7 @@ app.post("/api/chat", async (req, res) => {
 
     const conversation = [...safeHistory, { role: "user", content: cleanMessage }];
 
-    const reply = await generateReply(buildSystemPrompt(), conversation);
+    const reply = await generateReply(buildSystemPrompt(), conversation, buildGuardReminder());
     return res.json({ reply });
   } catch (err) {
     const status = err instanceof LLMError ? err.status : 500;
