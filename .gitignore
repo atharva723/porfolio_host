@@ -19,3 +19,7 @@ Thumbs.db
 
 # Build output
 dist/
+
+# Local audit reports (do not publish)
+AUDIT_REPORT.md
+CODE_QUALITY_REVIEW.md

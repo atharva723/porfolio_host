@@ -17,6 +17,12 @@
   const setText = (id, value) => { const el = $(id); if (el && value != null) el.textContent = value; };
   const setHTML = (id, value) => { const el = $(id); if (el && value != null) el.innerHTML = value; };
 
+  // Shared safety helpers (from util.js — must load before this file).
+  const U = window.PortfolioUtil || {};
+  const esc = U.escapeHtml || ((s) => String(s == null ? "" : s));
+  const safeUrl = U.safeUrl || ((s) => String(s == null ? "" : s));
+  const sanitize = U.sanitizeHtml || esc;
+
   /* ---- Branding ---- */
   if (d.site) {
     if (d.site.pageTitle) document.title = d.site.pageTitle;
@@ -37,15 +43,15 @@
 
     const aboutText = $("aboutText");
     if (aboutText && Array.isArray(d.about.paragraphs)) {
-      aboutText.innerHTML = d.about.paragraphs.map(p => `<p>${p}</p>`).join("");
+      aboutText.innerHTML = d.about.paragraphs.map(p => `<p>${sanitize(p)}</p>`).join("");
     }
 
     const statsGrid = $("statsGrid");
     if (statsGrid && Array.isArray(d.about.stats)) {
       statsGrid.innerHTML = d.about.stats.map(s => `
         <div class="stat-item">
-          <h3 data-count="${s.value}" data-suffix="${s.suffix || ""}">0${s.suffix || ""}</h3>
-          <p>${s.label}</p>
+          <h3 data-count="${Number(s.value) || 0}" data-suffix="${esc(s.suffix || "")}">0${esc(s.suffix || "")}</h3>
+          <p>${esc(s.label)}</p>
         </div>`).join("");
     }
   }
@@ -60,9 +66,9 @@
     if (grid && Array.isArray(d.skills.items)) {
       grid.innerHTML = d.skills.items.map(s => `
         <div class="skill-card">
-          <div class="skill-icon"><i class="${s.icon}"></i></div>
-          <div class="skill-name">${s.name}</div>
-          <div class="skill-level">${s.level}</div>
+          <div class="skill-icon"><i class="${esc(s.icon)}"></i></div>
+          <div class="skill-name">${esc(s.name)}</div>
+          <div class="skill-level">${esc(s.level)}</div>
         </div>`).join("");
     }
   }
@@ -77,10 +83,10 @@
     if (grid && Array.isArray(d.projects.items)) {
       const total = d.projects.items.length;
       grid.innerHTML = d.projects.items.map((p, i) => {
-        const tech = (p.tech || []).map(t => `<span class="tech-tag">${t}</span>`).join("");
-        const title = `<h3>${p.title}</h3>`;
+        const tech = (p.tech || []).map(t => `<span class="tech-tag">${esc(t)}</span>`).join("");
+        const title = `<h3>${esc(p.title)}</h3>`;
         const button = p.link
-          ? `<a href="${p.link}" target="_blank" rel="noopener" class="pearl-button" aria-label="View ${p.title} on GitHub">
+          ? `<a href="${esc(safeUrl(p.link))}" target="_blank" rel="noopener" class="pearl-button" aria-label="View ${esc(p.title)} on GitHub">
                <span class="pearl-wrap">
                  <i class="fab fa-github"></i>
                  <span class="pearl-label">View Code</span>
@@ -92,12 +98,12 @@
             <div class="project-card" data-stack-index="${i}" data-stack-total="${total}">
               <div class="project-info">
                 ${title}
-                <p>${p.description}</p>
+                <p>${esc(p.description)}</p>
                 <div class="tech-stack">${tech}</div>
                 ${button}
               </div>
               <div class="project-visual">
-                <i class="${p.icon}"></i>
+                <i class="${esc(p.icon)}"></i>
               </div>
             </div>
           </div>`;
@@ -113,16 +119,16 @@
     const list = $("experienceList");
     if (list && Array.isArray(d.experience.items)) {
       list.innerHTML = d.experience.items.map(e => {
-        const points = (e.points || []).map(pt => `<li>${pt}</li>`).join("");
+        const points = (e.points || []).map(pt => `<li>${esc(pt)}</li>`).join("");
         return `
           <div class="experience-card reveal">
             <div class="experience-header">
               <div>
-                <h3>${e.role}</h3>
-                <h4>${e.company}</h4>
-                <p>${e.subtitle || ""}</p>
+                <h3>${esc(e.role)}</h3>
+                <h4>${esc(e.company)}</h4>
+                <p>${esc(e.subtitle || "")}</p>
               </div>
-              <span class="experience-date">${e.date || ""}</span>
+              <span class="experience-date">${esc(e.date || "")}</span>
             </div>
             <ul>${points}</ul>
           </div>`;
@@ -140,9 +146,9 @@
     if (links && Array.isArray(d.contact.links)) {
       links.innerHTML = d.contact.links.map(l => {
         const ext = l.external ? ` target="_blank" rel="noopener"` : "";
-        return `<a href="${l.href}"${ext} class="contact-link">
-            <i class="${l.icon}"></i>
-            ${l.label}
+        return `<a href="${esc(safeUrl(l.href))}"${ext} class="contact-link">
+            <i class="${esc(l.icon)}"></i>
+            ${esc(l.label)}
           </a>`;
       }).join("");
     }

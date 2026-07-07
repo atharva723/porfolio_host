@@ -6,7 +6,12 @@
 (function () {
   "use strict";
 
-  const MAX_CHARS = 1000;
+  const MAX_CHARS = (window.APP_CONFIG && window.APP_CONFIG.MAX_MESSAGE_CHARS) || 1000;
+  const escapeHtml = (window.PortfolioUtil && window.PortfolioUtil.escapeHtml) || function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
   const ownerName = (window.portfolioData && window.portfolioData.site && window.portfolioData.site.name) || "me";
   const firstName = ownerName.split(" ")[0] || ownerName;
 
@@ -225,10 +230,4 @@
       open();
     });
   });
-
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
 })();
