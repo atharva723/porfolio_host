@@ -1438,3 +1438,85 @@ nav.scrolled {
     height: 42px;
   }
 }
+
+/* =========================================
+   HERO NAME — fluid size (replaces the old inline 55px so it
+   scales down on phones instead of overflowing)
+   ========================================= */
+.hero-content h1 span {
+    font-size: clamp(2.1rem, 8.5vw, 3.4rem);
+    display: inline;
+    word-break: break-word;
+}
+
+/* Prevent any accidental horizontal scrolling on small screens */
+@media (max-width: 768px) {
+    html, body { max-width: 100%; overflow-x: hidden; }
+}
+
+/* =========================================
+   SPOTLIGHT CARDS (21st.dev-style, ported to vanilla)
+   A soft gold glow follows the cursor across cards.
+   Desktop / fine-pointer only — added via JS on capable devices.
+   ========================================= */
+.spotlight {
+    position: relative;
+    isolation: isolate;
+}
+
+.spotlight::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        260px circle at var(--mx, 50%) var(--my, -20%),
+        rgba(255, 178, 44, 0.20),
+        rgba(255, 178, 44, 0.06) 40%,
+        transparent 65%
+    );
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.spotlight:hover::before {
+    opacity: 1;
+}
+
+/* Thin gold rim that also tracks the cursor, for a premium edge-lit look */
+.spotlight::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: radial-gradient(
+        200px circle at var(--mx, 50%) var(--my, -20%),
+        rgba(255, 178, 44, 0.55),
+        transparent 60%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.spotlight:hover::after {
+    opacity: 1;
+}
+
+/* Keep the card's own content above the glow layers */
+.spotlight > * {
+    position: relative;
+    z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spotlight::before,
+    .spotlight::after { transition: none; }
+}

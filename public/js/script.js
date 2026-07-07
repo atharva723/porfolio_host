@@ -164,6 +164,9 @@ const stackCards = Array.from(document.querySelectorAll('.projects-stack .projec
 
 function updateProjectStack() {
     if (!stackCards.length || reduceMotion) return;
+    // On mobile the deck is disabled in CSS and cards flow normally — skip the
+    // scroll-driven transforms so nothing fights the layout.
+    if (window.innerWidth <= 768) return;
     const centerY = window.innerHeight / 2;
 
     stackCards.forEach(card => {
@@ -213,6 +216,16 @@ function onScrollUI() {
 window.addEventListener('scroll', onScrollUI, { passive: true });
 onScrollUI();
 
+// On resize, clear any stale inline transforms the deck left behind when
+// crossing into mobile so cards render flat.
+window.addEventListener('resize', () => {
+    if (window.innerWidth <= 768) {
+        stackCards.forEach(card => { card.style.transform = ''; });
+    } else {
+        updateProjectStack();
+    }
+}, { passive: true });
+
 if (scrollTopBtn) {
     scrollTopBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -232,6 +245,24 @@ if (!reduceMotion && window.matchMedia('(pointer: fine)').matches) {
         });
         btn.addEventListener('mouseleave', () => {
             btn.style.transform = '';
+        });
+    });
+}
+
+// ===============================
+//  Spotlight cards (cursor-following gold glow — 21st.dev style)
+//  Desktop / fine-pointer only; mobile & reduced-motion untouched.
+// ===============================
+if (!reduceMotion && window.matchMedia('(pointer: fine)').matches) {
+    const spotlightCards = document.querySelectorAll(
+        '.skill-card, .projects-stack .project-card, .experience-card, .stat-item, .contact-link'
+    );
+    spotlightCards.forEach(card => {
+        card.classList.add('spotlight');
+        card.addEventListener('pointermove', (e) => {
+            const rect = card.getBoundingClientRect();
+            card.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+            card.style.setProperty('--my', (e.clientY - rect.top) + 'px');
         });
     });
 }
