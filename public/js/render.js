@@ -73,41 +73,73 @@
     }
   }
 
-  /* ---- Projects ---- */
+  /* ---- Projects ----
+     Cards are loaded from public/data/projects.json (kept up to date by the
+     automation workflow). If that file is missing or invalid, we fall back to
+     the built-in list in data.js so the site always renders. Because this load
+     is async, we fire a "projects:rendered" event afterwards so script.js can
+     (re)initialize the stacked-deck and spotlight interactions on the cards. */
+  function buildProjectsHtml(items) {
+    const total = items.length;
+    return items.map((p, i) => {
+      const tech = (p.tech || []).map(t => `<span class="tech-tag">${esc(t)}</span>`).join("");
+      const title = `<h3>${esc(p.title)}</h3>`;
+      const button = p.link
+        ? `<a href="${esc(safeUrl(p.link))}" target="_blank" rel="noopener" class="pearl-button" aria-label="View ${esc(p.title)} on GitHub">
+             <span class="pearl-wrap">
+               <i class="fab fa-github"></i>
+               <span class="pearl-label">View Code</span>
+             </span>
+           </a>`
+        : "";
+      return `
+        <div class="project-stack-item" style="--i:${i};">
+          <div class="project-card" data-stack-index="${i}" data-stack-total="${total}">
+            <div class="project-info">
+              ${title}
+              <p>${esc(p.description)}</p>
+              <div class="tech-stack">${tech}</div>
+              ${button}
+            </div>
+            <div class="project-visual">
+              <i class="${esc(p.icon)}"></i>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  // Normalize/order a project list: keep only visible items, sort by `order`.
+  function prepareItems(items) {
+    return (Array.isArray(items) ? items : [])
+      .filter(p => p && p.title && p.featured !== false)
+      .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+  }
+
+  function renderProjects(grid, items) {
+    const list = prepareItems(items);
+    if (!list.length) return;
+    grid.innerHTML = buildProjectsHtml(list);
+    document.dispatchEvent(new CustomEvent("projects:rendered"));
+  }
+
   if (d.projects) {
     setText("projectsTag", d.projects.tag);
     setText("projectsTitle", d.projects.title);
     setText("projectsDesc", d.projects.description);
 
     const grid = $("projectsGrid");
-    if (grid && Array.isArray(d.projects.items)) {
-      const total = d.projects.items.length;
-      grid.innerHTML = d.projects.items.map((p, i) => {
-        const tech = (p.tech || []).map(t => `<span class="tech-tag">${esc(t)}</span>`).join("");
-        const title = `<h3>${esc(p.title)}</h3>`;
-        const button = p.link
-          ? `<a href="${esc(safeUrl(p.link))}" target="_blank" rel="noopener" class="pearl-button" aria-label="View ${esc(p.title)} on GitHub">
-               <span class="pearl-wrap">
-                 <i class="fab fa-github"></i>
-                 <span class="pearl-label">View Code</span>
-               </span>
-             </a>`
-          : "";
-        return `
-          <div class="project-stack-item" style="--i:${i};">
-            <div class="project-card" data-stack-index="${i}" data-stack-total="${total}">
-              <div class="project-info">
-                ${title}
-                <p>${esc(p.description)}</p>
-                <div class="tech-stack">${tech}</div>
-                ${button}
-              </div>
-              <div class="project-visual">
-                <i class="${esc(p.icon)}"></i>
-              </div>
-            </div>
-          </div>`;
-      }).join("");
+    if (grid) {
+      const fallback = d.projects.items;
+      fetch("./data/projects.json", { cache: "no-cache" })
+        .then(res => (res.ok ? res.json() : null))
+        .then(json => {
+          const items = json && Array.isArray(json.items) && json.items.length
+            ? json.items
+            : fallback;
+          renderProjects(grid, items);
+        })
+        .catch(() => renderProjects(grid, fallback));
     }
   }
 

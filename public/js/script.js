@@ -160,7 +160,7 @@ const heroBg = document.getElementById('heroBg');
 const heroBaseFilter = 'brightness(1.12) contrast(1.08)';
 
 // Stacked project cards (scroll-pinned deck — ported from GSAP ScrollTrigger)
-const stackCards = Array.from(document.querySelectorAll('.projects-stack .project-card'));
+let stackCards = Array.from(document.querySelectorAll('.projects-stack .project-card'));
 
 function updateProjectStack() {
     if (!stackCards.length || reduceMotion) return;
@@ -253,11 +253,10 @@ if (!reduceMotion && window.matchMedia('(pointer: fine)').matches) {
 //  Spotlight cards (cursor-following gold glow — 21st.dev style)
 //  Desktop / fine-pointer only; mobile & reduced-motion untouched.
 // ===============================
-if (!reduceMotion && window.matchMedia('(pointer: fine)').matches) {
-    const spotlightCards = document.querySelectorAll(
-        '.skill-card, .projects-stack .project-card, .experience-card, .stat-item, .contact-link'
-    );
-    spotlightCards.forEach(card => {
+function applySpotlight(cards) {
+    if (reduceMotion || !window.matchMedia('(pointer: fine)').matches) return;
+    cards.forEach(card => {
+        if (card.classList.contains('spotlight')) return; // avoid double-binding
         card.classList.add('spotlight');
         card.addEventListener('pointermove', (e) => {
             const rect = card.getBoundingClientRect();
@@ -266,3 +265,17 @@ if (!reduceMotion && window.matchMedia('(pointer: fine)').matches) {
         });
     });
 }
+
+// Non-project cards exist at load (rendered synchronously). Project cards load
+// asynchronously from data/projects.json, so they're wired up on the event below.
+applySpotlight(document.querySelectorAll(
+    '.skill-card, .experience-card, .stat-item, .contact-link'
+));
+
+// Project cards are injected asynchronously by render.js. Once they exist,
+// (re)capture them for the stacked-deck scroll effect and add the spotlight glow.
+document.addEventListener('projects:rendered', () => {
+    stackCards = Array.from(document.querySelectorAll('.projects-stack .project-card'));
+    updateProjectStack();
+    applySpotlight(document.querySelectorAll('.projects-stack .project-card'));
+});

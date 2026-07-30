@@ -23,3 +23,10 @@ dist/
 # Local audit reports (do not publish)
 AUDIT_REPORT.md
 CODE_QUALITY_REVIEW.md
+
+# Automation preview-server runtime state
+automation/.preview.pid
+automation/.preview.log
+automation/.github_pat
+public/data/projects.json.bak
+public/data/projects.json.bak.absent
