@@ -98,11 +98,19 @@
   }
 
   // ---- Rendering ----
-  function addMessage(role, text) {
+  function addMessage(role, text, opts) {
     const el = document.createElement("div");
     el.className = "ask-msg " + role;
     if (role === "assistant") {
       el.innerHTML = formatMarkdown(text);
+      // Small badge showing the reply was served from cache (no LLM call).
+      if (opts && opts.cached) {
+        const badge = document.createElement("span");
+        badge.className = "ask-cached-badge";
+        badge.title = "Served instantly from cache (no AI call)";
+        badge.innerHTML = '<i class="fas fa-bolt"></i> cached';
+        el.appendChild(badge);
+      }
     } else {
       el.textContent = text;
     }
@@ -187,7 +195,7 @@
       if (!res.ok) {
         addMessage("error", data.error || "Something went wrong. Please try again.");
       } else {
-        addMessage("assistant", data.reply);
+        addMessage("assistant", data.reply, { cached: data.cached === true });
         history.push({ role: "assistant", content: data.reply });
       }
     } catch (err) {

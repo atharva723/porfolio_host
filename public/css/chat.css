@@ -221,6 +221,28 @@
     color: #ffd9d9;
 }
 
+/* "Served from cache" badge */
+.ask-cached-badge {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    gap: 4px;
+    margin-top: 0.55rem;
+    padding: 0.12rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    user-select: none;
+}
+
+.ask-cached-badge i {
+    font-size: 0.72rem;
+}
+
 /* Inline markdown inside assistant replies */
 .ask-msg.assistant strong {
     color: var(--accent);
