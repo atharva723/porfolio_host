@@ -56,6 +56,24 @@ test("200 answer for a valid on-topic question via mocked LLM", async () => {
   assert.equal(r.json.reply, "MOCKED_REPLY");
 });
 
+test("identical question is served from cache on the second call", async () => {
+  const msg = "Tell me about Atharva's DevOps experience please";
+  const first = await postChat({ message: msg });
+  assert.equal(first.status, 200);
+  assert.equal(first.json.cached, false, "first call is a miss");
+
+  const second = await postChat({ message: msg });
+  assert.equal(second.status, 200);
+  assert.equal(second.json.reply, first.json.reply);
+  assert.equal(second.json.cached, true, "second identical call is a hit");
+});
+
+test("a different question is not served from the cached answer", async () => {
+  const r = await postChat({ message: "What databases has Atharva used in projects?" });
+  assert.equal(r.status, 200);
+  assert.equal(r.json.cached, false);
+});
+
 test("sets security headers (helmet)", async () => {
   const res = await fetch(`${base}/`);
   assert.ok(res.headers.get("content-security-policy"), "CSP header present");

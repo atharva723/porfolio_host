@@ -11,8 +11,9 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 const { buildSystemPrompt, buildGuardReminder, REFUSAL } = require("./lib/knowledge");
-const { generateReply, LLMError } = require("./lib/llm");
+const { generateReply, LLMError, cacheSignature } = require("./lib/llm");
 const { sanitize, looksLikeInjection, createRateLimiter } = require("./lib/guards");
+const cache = require("./lib/cache");
 const CONFIG = require("./public/js/config.js");
 
 const app = express();
@@ -102,8 +103,31 @@ app.post("/api/chat", async (req, res) => {
 
     const conversation = [...safeHistory, { role: "user", content: cleanMessage }];
 
-    const reply = await generateReply(buildSystemPrompt(), conversation, buildGuardReminder());
-    return res.json({ reply });
+    // Reuse a previously generated answer when the exact same request (system
+    // prompt + guard + full conversation + model/params) has been seen before.
+    // The key hashes all of those, so a cached reply is only ever served when
+    // it is still 100% valid; editing the knowledge base changes the system
+    // prompt and therefore the key, transparently invalidating stale answers.
+    const systemPrompt = buildSystemPrompt();
+    const guard = buildGuardReminder();
+    const cacheKey = cache.makeKey([
+      "chat-v1",
+      cacheSignature(),
+      systemPrompt,
+      guard,
+      JSON.stringify(conversation),
+    ]);
+
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      return res.json({ reply: cached.value, cached: true });
+    }
+
+    const reply = await generateReply(systemPrompt, conversation, guard);
+    // Await the store so the durable (Redis) write finishes before a
+    // serverless instance can freeze after the response is sent.
+    await cache.set(cacheKey, reply);
+    return res.json({ reply, cached: false });
   } catch (err) {
     const status = err instanceof LLMError ? err.status : 500;
     console.error("[/api/chat]", err.message);
