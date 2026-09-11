@@ -60,6 +60,10 @@
   const sendBtn = overlay.querySelector("#askSend");
   const closeBtn = overlay.querySelector(".ask-close");
 
+  // Spring-animated caret for the prompt box. It keeps the browser's own
+  // caret on touch devices and under prefers-reduced-motion.
+  const caret = window.SmoothCaret ? window.SmoothCaret.attach(input) : null;
+
   // ---- Open / close ----
   function open() {
     lastFocused = document.activeElement;
@@ -176,6 +180,7 @@
     history.push({ role: "user", content: text });
     input.value = "";
     autosize();
+    if (caret) caret.snap();
     updateSendState();
 
     const typingEl = showTyping();
@@ -211,6 +216,7 @@
   // ---- Events ----
   input.addEventListener("input", function () {
     autosize();
+    if (caret) caret.update();
     updateSendState();
   });
 

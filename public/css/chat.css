@@ -324,6 +324,78 @@
     color: rgba(255, 255, 255, 0.45);
 }
 
+/* ---- Smooth caret (see js/smooth-caret.js) ----
+   The native caret is hidden and replaced by a spring-animated bar that
+   glides to the real caret position. .is-native-caret restores the browser
+   default on touch devices and under prefers-reduced-motion. */
+.smooth-caret-field {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.smooth-caret-field > textarea,
+.smooth-caret-field > input {
+    caret-color: transparent;
+}
+
+.smooth-caret-field.is-native-caret > textarea,
+.smooth-caret-field.is-native-caret > input {
+    caret-color: auto;
+}
+
+.smooth-caret-field.is-native-caret .smooth-caret {
+    display: none;
+}
+
+/* Hidden twin of the textarea. Height is clamped to 0 so a long draft can
+   never stretch the panel, but the text inside still lays out normally,
+   which is what we measure the caret position from. */
+.smooth-caret-mirror {
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+    height: 0;
+    margin: 0;
+    border: 0;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+    user-select: none;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
+.smooth-caret {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 1em;
+    border-radius: 2px;
+    background: var(--accent, #FFB22C);
+    box-shadow: 0 0 10px rgba(255, 178, 44, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform;
+    transition: opacity 0.12s ease;
+}
+
+.smooth-caret-field.is-caret-visible .smooth-caret {
+    opacity: 1;
+}
+
+/* Only blink once the caret is both visible and idle. */
+.smooth-caret-field.is-caret-visible .smooth-caret.is-idle {
+    animation: smoothCaretBlink 1.1s steps(1, end) infinite;
+}
+
+@keyframes smoothCaretBlink {
+    0%, 49%   { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
 .ask-inputbox-row {
     display: flex;
     align-items: center;
