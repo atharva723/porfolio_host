@@ -114,6 +114,24 @@ const portfolioData = {
     ]
   },
 
+  /* ---- Certifications section ---- */
+  certifications: {
+    tag: "Certifications",
+    title: "Credentials & proof of skill",
+    description: "Industry-recognized certifications validating my cloud and DevOps expertise.",
+    items: [
+      {
+        title: "Microsoft Certified: Azure Fundamentals",
+        code: "AZ-900",
+        issuer: "Microsoft",
+        date: "Aug 2026",
+        credentialId: "4643C462FF5233C9",
+        icon: "fab fa-microsoft",
+        verifyUrl: "https://learn.microsoft.com/api/credentials/share/en-us/AtharvaJadhavInternationalSupplier-4962/4643C462FF5233C9?sharingId=454FAFEA6CCB7145"
+      }
+    ]
+  },
+
   /* ---- Experience section ---- */
   experience: {
     tag: "Experience",

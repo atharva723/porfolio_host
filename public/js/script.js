@@ -269,7 +269,7 @@ function applySpotlight(cards) {
 // Non-project cards exist at load (rendered synchronously). Project cards load
 // asynchronously from data/projects.json, so they're wired up on the event below.
 applySpotlight(document.querySelectorAll(
-    '.skill-card, .experience-card, .stat-item, .contact-link'
+    '.skill-card, .experience-card, .stat-item, .contact-link, .cert-card'
 ));
 
 // Project cards are injected asynchronously by render.js. Once they exist,

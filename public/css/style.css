@@ -7,23 +7,45 @@
 
         
         :root {
-            --bg-main: #000000;
-            --bg-soft: #0a0a0a;
+            /* Warm, layered near-black — softer & more premium than pure #000 */
+            --bg-main: #070604;
+            --bg-soft: #0d0b08;
+            --bg-elevated: #14110c;
 
-            --text-primary: #F7F7F7;
-            --text-secondary: #854836;
+            /* Warm off-white "paper" text, warm muted grey for support copy */
+            --text-primary: #F4F1EA;
+            --text-muted: #C6C0B4;
+            --text-secondary: #B5765B;
 
+            /* Amber ramp (kept on rgb(255,178,44) to match existing gold accents) */
             --accent: #FFB22C;
+            --accent-bright: #FFD27D;
+            --accent-deep: #FF7B00;
+            --accent-ember: #C2410C;
             --accent-soft: rgba(255, 178, 44, 0.15);
+            --gold-gradient: linear-gradient(120deg, #FFB22C 0%, #FFD27D 35%, #FF7B00 70%, #FFB22C 100%);
 
-            --border-soft: rgba(255, 255, 255, 0.08);
+            --border-soft: rgba(240, 228, 208, 0.09);
+            --border-gold: rgba(255, 178, 44, 0.22);
 
             /* Aliases used throughout the stylesheet */
-            --primary: #111111;
-            --light: #F7F7F7;
-            --gray: #9a9a9a;
-            --light-gray: rgba(255, 255, 255, 0.06);
-            --bg-card: rgba(255, 255, 255, 0.03);
+            --primary: #14110c;
+            --light: #F4F1EA;
+            --gray: #A8A299;
+            --light-gray: rgba(240, 228, 208, 0.05);
+            --bg-card: rgba(240, 228, 208, 0.028);
+
+            /* Type system */
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            --font-display: 'Fraunces', 'Space Grotesk', Georgia, serif;
+            --font-alt: 'Space Grotesk', 'Inter', sans-serif;
+
+            /* Signature easing */
+            --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        html {
+            color-scheme: dark;
         }
 
         html {
@@ -34,21 +56,41 @@
         
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-family: var(--font-body);
 
     background: linear-gradient(
         180deg,
-        #000000 0%,
-        #050505 100%
+        #070604 0%,
+        #0a0806 55%,
+        #060504 100%
     );
     color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01";
     overflow-x: hidden;
 }
 
-h1, h2, h3, .logo, .section-title, .hero-content h1 {
-    font-family: 'Space Grotesk', 'Inter', sans-serif;
+h1, h2, h3, .logo {
+    font-family: var(--font-alt);
+}
+
+/* Editorial serif for the marquee headlines — the premium anti-"AI-slop" touch */
+.section-title, .hero-content h1 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-weight: 600;
+    text-wrap: balance;
+}
+
+.section-description, .about-text p, .hero-content p {
+    text-wrap: pretty;
+}
+
+/* Tabular figures so stat/counter numbers stay aligned */
+.stat-item h3, .cert-credential span {
+    font-variant-numeric: tabular-nums;
 }
 
 /* ===============================
@@ -348,9 +390,9 @@ nav.scrolled {
 
 /* Headline */
 .hero-content h1 {
-    font-size: 4.2rem;
-    line-height: 1.1;
-    letter-spacing: -1px;
+    font-size: clamp(3rem, 6vw, 4.6rem);
+    line-height: 1.06;
+    letter-spacing: -0.5px;
     margin-bottom: 1.2rem;
 }
 
@@ -408,7 +450,7 @@ nav.scrolled {
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .btn::after {
@@ -549,13 +591,12 @@ nav.scrolled {
         }
 
         .section-title {
-            font-size: 3rem;
-            font-weight: 700;
+            font-size: clamp(2.2rem, 4.2vw, 3.15rem);
+            font-weight: 600;
             margin-bottom: 1rem;
-            letter-spacing: -1px;
-            line-height: 1.2;
+            line-height: 1.14;
             color: var(--text-primary);
-            letter-spacing: -0.5px;
+            letter-spacing: -0.25px;
         }
 
         .section-description {
@@ -679,7 +720,7 @@ nav.scrolled {
             padding: 4rem;
             background: var(--light-gray);
             border-radius: 30px;
-            transition: all 0.3s;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 
             background: rgba(255, 255, 255, 0.04);
              border: 1px solid var(--border-soft);
@@ -800,12 +841,11 @@ nav.scrolled {
             display: inline-flex;
             margin-top: 2rem;
             border: 0;
-            outline: none;
             cursor: pointer;
             text-decoration: none;
             border-radius: 100px;
             background-color: var(--pearl-bg);
-            transition: all 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow:
                 inset 0 0.25rem 0.7rem rgba(255, 178, 44, 0.35),
                 inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.7),
@@ -851,7 +891,7 @@ nav.scrolled {
             border-radius: 22px 22px 0 0;
             box-shadow: inset 0 10px 8px -10px rgba(255, 200, 120, 0.6);
             background: linear-gradient(180deg, rgba(255, 178, 44, 0.25) 0%, rgba(0, 0, 0, 0) 55%);
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
             pointer-events: none;
         }
 
@@ -982,7 +1022,7 @@ nav.scrolled {
             display: flex;
             align-items: center;
             gap: 0.8rem;
-            transition: all 0.3s;
+            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .contact-link:hover {
@@ -1026,7 +1066,7 @@ nav.scrolled {
             opacity: 0;
             visibility: hidden;
             transform: translateY(20px);
-            transition: all 0.35s ease;
+            transition: opacity 0.35s ease, visibility 0.35s ease, transform 0.35s ease;
             z-index: 1500;
         }
 
@@ -1444,7 +1484,7 @@ nav.scrolled {
    scales down on phones instead of overflowing)
    ========================================= */
 .hero-content h1 span {
-    font-size: clamp(2.1rem, 8.5vw, 3.4rem);
+    font-size: clamp(2.6rem, 8vw, 4.4rem);
     display: inline;
     word-break: break-word;
 }
@@ -1519,4 +1559,229 @@ nav.scrolled {
 @media (prefers-reduced-motion: reduce) {
     .spotlight::before,
     .spotlight::after { transition: none; }
+}
+
+
+/* =========================================
+   CERTIFICATIONS
+   Premium credential cards — glass surface,
+   gold badge, verifiable proof, responsive grid.
+   ========================================= */
+.certifications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.6rem;
+}
+
+.cert-card {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1.9rem 1.8rem;
+    min-width: 0;
+    background:
+        linear-gradient(160deg, rgba(255, 178, 44, 0.05), rgba(240, 228, 208, 0.015) 45%),
+        var(--bg-card);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    transition:
+        transform 0.4s var(--ease-out-expo),
+        border-color 0.4s ease,
+        box-shadow 0.4s ease;
+}
+
+.cert-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--border-gold);
+    box-shadow:
+        0 24px 48px rgba(0, 0, 0, 0.55),
+        0 0 30px rgba(255, 178, 44, 0.10);
+}
+
+.cert-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.cert-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 15px;
+    font-size: 1.55rem;
+    color: var(--accent);
+    background: radial-gradient(circle at 30% 25%, rgba(255, 178, 44, 0.22), rgba(255, 178, 44, 0.06) 70%);
+    border: 1px solid var(--border-gold);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: transform 0.4s var(--ease-out-expo);
+}
+
+.cert-card:hover .cert-badge {
+    transform: scale(1.08) rotate(-3deg);
+}
+
+.cert-code {
+    font-family: var(--font-alt);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent-bright);
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    background: rgba(255, 178, 44, 0.10);
+    border: 1px solid var(--border-gold);
+    white-space: nowrap;
+}
+
+.cert-title {
+    font-family: var(--font-alt);
+    font-size: 1.22rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.2px;
+    color: var(--text-primary);
+    text-wrap: balance;
+}
+
+.cert-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.2rem;
+    margin-top: -0.15rem;
+}
+
+.cert-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.cert-meta i {
+    color: var(--accent);
+    font-size: 0.85rem;
+}
+
+.cert-credential {
+    font-size: 0.8rem;
+    color: var(--gray);
+    letter-spacing: 0.2px;
+}
+
+.cert-credential span {
+    color: var(--text-muted);
+    font-family: var(--font-alt);
+}
+
+.cert-verify {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    align-self: flex-start;
+    margin-top: 0.35rem;
+    padding: 0.6rem 1.15rem;
+    border-radius: 50px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--bg-main);
+    background: var(--gold-gradient);
+    background-size: 200% auto;
+    border: 1px solid transparent;
+    transition:
+        background-position 0.5s ease,
+        transform 0.3s var(--ease-out-expo),
+        box-shadow 0.3s ease;
+}
+
+.cert-verify i {
+    font-size: 0.78rem;
+    transition: transform 0.3s var(--ease-out-expo);
+}
+
+.cert-verify:hover {
+    background-position: right center;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(255, 178, 44, 0.28);
+}
+
+.cert-verify:hover i {
+    transform: translate(2px, -2px);
+}
+
+.cert-verify:focus-visible {
+    outline: 2px solid var(--accent-bright);
+    outline-offset: 3px;
+}
+
+@media (max-width: 768px) {
+    .certifications-grid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+    }
+    .cert-card {
+        padding: 1.6rem 1.4rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cert-card,
+    .cert-badge,
+    .cert-verify,
+    .cert-verify i {
+        transition: none;
+    }
+    .cert-card:hover {
+        transform: none;
+    }
+    .cert-card:hover .cert-badge {
+        transform: none;
+    }
+}
+
+/* =========================================
+   ACCESSIBILITY & INTERACTION POLISH
+   Visible keyboard focus, anchored-section
+   offset under the fixed nav, tap tuning.
+   ========================================= */
+:where(a, button, [tabindex]):focus-visible {
+    outline: 2px solid var(--accent-bright);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+.nav-links a:focus-visible,
+.pearl-button:focus-visible,
+.contact-link:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid var(--accent-bright);
+    outline-offset: 4px;
+}
+
+/* Keep anchored section headings clear of the 80px fixed navbar */
+section[id] {
+    scroll-margin-top: 96px;
+}
+
+/* Snappier taps, no 300ms delay, intentional highlight */
+a, button, .btn, .pearl-button, .cert-verify {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(255, 178, 44, 0.18);
+}
+
+@media (max-width: 768px) {
+    section[id] {
+        scroll-margin-top: 80px;
+    }
 }

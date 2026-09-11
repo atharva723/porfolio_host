@@ -143,6 +143,47 @@
     }
   }
 
+  /* ---- Certifications ---- */
+  if (d.certifications) {
+    setText("certificationsTag", d.certifications.tag);
+    setText("certificationsTitle", d.certifications.title);
+    setText("certificationsDesc", d.certifications.description);
+
+    const grid = $("certificationsGrid");
+    if (grid && Array.isArray(d.certifications.items)) {
+      grid.innerHTML = d.certifications.items.map(c => {
+        const code = c.code
+          ? `<span class="cert-code">${esc(c.code)}</span>`
+          : "";
+        const meta = [];
+        if (c.issuer) meta.push(`<span class="cert-issuer"><i class="fas fa-building-shield" aria-hidden="true"></i>${esc(c.issuer)}</span>`);
+        if (c.date) meta.push(`<span class="cert-date"><i class="fas fa-calendar-check" aria-hidden="true"></i>${esc(c.date)}</span>`);
+        const metaHtml = meta.length ? `<div class="cert-meta">${meta.join("")}</div>` : "";
+        const credId = c.credentialId
+          ? `<p class="cert-credential">Credential ID <span>${esc(c.credentialId)}</span></p>`
+          : "";
+        const verify = c.verifyUrl
+          ? `<a href="${esc(safeUrl(c.verifyUrl))}" target="_blank" rel="noopener" class="cert-verify" aria-label="Verify ${esc(c.title)} credential">
+               <span>Verify Credential</span>
+               <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>
+             </a>`
+          : "";
+        return `
+          <article class="cert-card">
+            <div class="cert-top">
+              <span class="cert-badge"><i class="${esc(c.icon || "fas fa-certificate")}" aria-hidden="true"></i></span>
+              ${code}
+            </div>
+            <h3 class="cert-title">${esc(c.title)}</h3>
+            ${metaHtml}
+            ${credId}
+            ${verify}
+          </article>`;
+      }).join("");
+      document.dispatchEvent(new CustomEvent("certifications:rendered"));
+    }
+  }
+
   /* ---- Experience ---- */
   if (d.experience) {
     setText("experienceTag", d.experience.tag);
