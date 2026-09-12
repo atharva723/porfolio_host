@@ -1,3 +1,26 @@
+/* =====================================================================
+   THUNDER — condensed display typeface by Rajesh Rajput.
+   Freeware for personal and commercial use; the files must not be
+   modified, so these are the foundry's own web builds shipped verbatim
+   (see fonts/THUNDER-License.pdf).
+   ===================================================================== */
+
+@font-face {
+    font-family: 'Thunder';
+    src: url('../fonts/Thunder-SemiBoldLC.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Thunder';
+    src: url('../fonts/Thunder-BoldLC.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 * {
             margin: 0;
             padding: 0;
@@ -35,9 +58,12 @@
             --light-gray: rgba(240, 228, 208, 0.05);
             --bg-card: rgba(240, 228, 208, 0.028);
 
-            /* Type system */
+            /* Type system
+               Thunder (condensed display) carries the name + section titles;
+               Inter keeps body copy readable. Weight ramp is defined in the
+               "THUNDER WEIGHT RAMP" block further down. */
             --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            --font-display: 'Fraunces', 'Space Grotesk', Georgia, serif;
+            --font-display: 'Thunder', 'Arial Narrow', Impact, 'Space Grotesk', sans-serif;
             --font-alt: 'Space Grotesk', 'Inter', sans-serif;
 
             /* Signature easing */
@@ -76,13 +102,31 @@ h1, h2, h3, .logo {
     font-family: var(--font-alt);
 }
 
-/* Editorial serif for the marquee headlines — the premium anti-"AI-slop" touch */
+/* ===============================
+   THUNDER WEIGHT RAMP
+   Thunder is a condensed display face, so the ramp is set by optical
+   weight rather than a single value: the name is the heaviest voice,
+   and section titles step down one notch so the hierarchy still reads
+   at a glance.
+   Sizes are ~1.4x their old serif values to compensate for the narrower
+   width, and the negative tracking is dropped since Thunder is already
+   tight by design.
+   =============================== */
 .section-title, .hero-content h1 {
     font-family: var(--font-display);
-    font-optical-sizing: auto;
-    font-weight: 600;
     text-wrap: balance;
 }
+
+/* Name — loudest voice on the page */
+.hero-content h1 {
+    font-weight: 700;
+}
+
+/* Section titles — one step lighter than the name */
+.section-title {
+    font-weight: 600;
+}
+
 
 .section-description, .about-text p, .hero-content p {
     text-wrap: pretty;
@@ -390,9 +434,9 @@ nav.scrolled {
 
 /* Headline */
 .hero-content h1 {
-    font-size: clamp(3rem, 6vw, 4.6rem);
-    line-height: 1.06;
-    letter-spacing: -0.5px;
+    font-size: clamp(4.2rem, 8.4vw, 6.4rem);
+    line-height: 1;
+    letter-spacing: 0.5px;
     margin-bottom: 1.2rem;
 }
 
@@ -522,7 +566,7 @@ nav.scrolled {
     }
 
     .hero-content h1 {
-        font-size: 2.6rem;
+        font-size: 3.6rem;
     }
 
     .hero-cta {
@@ -591,12 +635,12 @@ nav.scrolled {
         }
 
         .section-title {
-            font-size: clamp(2.2rem, 4.2vw, 3.15rem);
+            font-size: clamp(3.1rem, 5.9vw, 4.4rem);
             font-weight: 600;
             margin-bottom: 1rem;
-            line-height: 1.14;
+            line-height: 1.05;
             color: var(--text-primary);
-            letter-spacing: -0.25px;
+            letter-spacing: 0.4px;
         }
 
         .section-description {
@@ -1159,7 +1203,7 @@ nav.scrolled {
             }
 
             .hero h1 {
-                font-size: 4rem;
+                font-size: 5.6rem;
             }
         }
         @media (max-width: 768px) {
@@ -1206,7 +1250,7 @@ nav.scrolled {
             
 
             .hero h1 {
-                font-size: 2.5rem;
+                font-size: 3.5rem;
             }
 
             .hero p {
@@ -1214,7 +1258,7 @@ nav.scrolled {
             }
 
             .section-title {
-                font-size: 2rem;
+                font-size: 2.8rem;
             }
 
             .about-content,
@@ -1294,8 +1338,8 @@ nav.scrolled {
   }
 
   .hero-content h1 {
-    font-size: 2.4rem;
-    line-height: 1.15;
+    font-size: 3.35rem;
+    line-height: 1.04;
     margin-bottom: 0.8rem;
   }
 
@@ -1333,8 +1377,8 @@ nav.scrolled {
   }
 
   .section-title {
-    font-size: 1.7rem;
-    line-height: 1.25;
+    font-size: 2.4rem;
+    line-height: 1.12;
   }
 
   .section-description {
@@ -1484,7 +1528,7 @@ nav.scrolled {
    scales down on phones instead of overflowing)
    ========================================= */
 .hero-content h1 span {
-    font-size: clamp(2.6rem, 8vw, 4.4rem);
+    font-size: clamp(3.6rem, 11.2vw, 6.15rem);
     display: inline;
     word-break: break-word;
 }
