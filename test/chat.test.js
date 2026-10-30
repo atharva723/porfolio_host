@@ -1,6 +1,10 @@
 const test = require("node:test");
 const assert = require("node:assert");
 
+// Force the in-memory fallbacks regardless of any local .env.
+process.env.UPSTASH_REDIS_REST_URL = "";
+process.env.UPSTASH_REDIS_REST_TOKEN = "";
+
 // Replace the LLM layer with a stub BEFORE loading the app, so tests never
 // make a network call. server.js destructures generateReply at require time,
 // so patching the module export here is picked up.

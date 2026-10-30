@@ -28,7 +28,13 @@ recruiters ask questions and get answers grounded in the portfolio content.
   is only ever reused when still valid — editing the knowledge base changes the
   prompt and transparently invalidates stale answers.
 - Guardrails: prompt-injection filter, strict on-topic system prompt, input
-  validation, body-size limits, and best-effort per-IP rate limiting.
+  validation, body-size limits, and per-IP rate limiting (shared Redis
+  counters, in-memory fallback).
+- **Server-owned conversation memory:** the browser keeps only an opaque,
+  HttpOnly session cookie; the conversation itself lives in Redis (in-memory
+  fallback) for up to 1 hour of inactivity. Follow-up questions keep context,
+  the transcript is restored after a page reload, "New chat" wipes it, and
+  client-supplied history is ignored, so earlier turns can't be forged.
 - Security headers via `helmet` (incl. a tuned Content-Security-Policy).
 - Safe client rendering (HTML escaping + URL scheme validation).
 - Project cards stay in sync with GitHub repos via an n8n automation
@@ -95,12 +101,31 @@ Without these, the app silently falls back to in-memory caching.
 > **Security:** never commit a real key. Keep it only in `.env` (local) and
 > Vercel env vars. If a key is ever exposed, rotate it in the provider console.
 
+### Sessions & rate limiting
+
+Both use the same Upstash Redis credentials as the cache and fall back to
+per-instance memory when Redis is missing or erroring (the chat never fails
+because of them).
+
+| Variable              | Required | Description                                                           |
+| --------------------- | -------- | --------------------------------------------------------------------- |
+| `SESSION_TTL_SECONDS` | no       | Idle lifetime of a chat session (default `3600` = 1 hour).            |
+| `RATE_LIMIT_SALT`     | no       | Secret salt for hashing client IPs; raw IPs are never stored in Redis. |
+
+Redis keys: `sess:<id>:turns` (last 12 messages, sliding TTL), `sess:<id>:lock`
+(one in-flight message per session, 30 s safety TTL), `rl:<bucket>:<hash>`
+(fixed-window counters). API: `POST /api/chat` (body: `{ message }`),
+`GET /api/chat/history` (restore transcript), `DELETE /api/chat/history`
+(new chat).
+
 ---
 
 ## Updating content
 
-- **Portfolio content** (name, skills, projects, experience, contact):
-  edit `public/js/data.js` only — the page renders from it.
+- **Portfolio content** (name, skills, projects, experience, education,
+  certifications, contact): edit `public/js/data.js` only — the page renders
+  from it, and the chat assistant reads the same data (education is used by the
+  assistant but not rendered on the page).
 - **Project cards** are rendered from `public/data/projects.json` when present
   (kept up to date by the n8n automation in [`automation/`](automation/)), and
   fall back to `public/js/data.js` if that file is missing or invalid.
@@ -118,8 +143,11 @@ server.js              Express app: static hosting + POST /api/chat
 lib/
   llm.js               Provider abstraction (Groq/Mistral/Gemini) + timeouts
   knowledge.js         Builds the system prompt from data.js + knowledge.md
-  guards.js            sanitize / injection detection / rate limiter
+  guards.js            sanitize / injection detection / in-memory limiter (fallback)
   cache.js             Response cache (in-memory LRU + optional Upstash Redis)
+  redis.js             Shared Upstash Redis client (null when unconfigured)
+  session.js           Server-owned chat sessions (cookie id, Redis memory, lock)
+  ratelimit.js         Redis rate limits with hashed IPs + in-memory fallback
 knowledge.md           Editable extra knowledge base
 public/
   index.html
@@ -152,14 +180,17 @@ vercel.json            Vercel routing
 
 ## Notes & limitations
 
-- The rate limiter is in-memory and **best-effort**: on serverless it resets per
-  cold start, so it guards against casual abuse but is not a hard quota. For
-  strict limits, back it with a shared store (e.g. Upstash Redis / Vercel KV).
+- Rate limits and sessions are shared across serverless instances **only when
+  Upstash is configured**. Without it they fall back to per-instance memory,
+  which resets on cold starts (fine locally, a soft guard in production).
 - Without Upstash configured, the **response cache is in-memory only**, so hits
   are limited to a single warm instance and reset on cold starts. Configure
   Upstash for durable, cross-instance (and cross-visitor) cache hits.
-- The cache matches on the **whole conversation**, so re-asking within one chat
-  session is a miss (correct for multi-turn context). The big wins are common
-  opening questions with empty history, which are shared across all visitors.
+- The cache matches on the **whole conversation** (now loaded from the server
+  session), so a follow-up in an ongoing chat is a miss (correct for multi-turn
+  context). The big wins are common opening questions, which are shared across
+  all visitors.
+- Chat text is stored in Redis for up to the session TTL (default 1 hour of
+  inactivity) so follow-ups work; visitors can wipe it with "New chat".
 - Free LLM tiers have per-minute token limits; the app surfaces provider `429`s
   as a friendly "busy, try again" message.

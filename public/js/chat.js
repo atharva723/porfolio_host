@@ -51,6 +51,7 @@
     "    </div>",
     "  </div>",
     '  <p class="ask-hint">Press Enter to send · Shift+Enter for a new line · Esc to close</p>',
+    '  <p class="ask-hint ask-notice">AI assistant — it can make mistakes. Chats are kept up to 1 hour so follow-ups work. <button class="ask-reset" id="askReset" type="button">New chat</button></p>',
     "</div>",
   ].join("");
   document.body.appendChild(overlay);
@@ -59,6 +60,7 @@
   const input = overlay.querySelector("#askInput");
   const sendBtn = overlay.querySelector("#askSend");
   const closeBtn = overlay.querySelector(".ask-close");
+  const resetBtn = overlay.querySelector("#askReset");
 
   // Spring-animated caret for the prompt box. It keeps the browser's own
   // caret on touch devices and under prefers-reduced-motion.
@@ -82,15 +84,59 @@
 
     overlay.classList.add("is-open");
     document.body.classList.add("ask-open");
-    if (!history.length) {
-      addMessage(
-        "assistant",
-        "Hi! I'm " + firstName + "'s assistant. Ask me about " + firstName + "'s skills, experience, projects, or how to get in touch."
-      );
-    }
+    restoreOnce();
     setTimeout(function () {
       input.focus();
     }, 350);
+  }
+
+  function greet() {
+    addMessage(
+      "assistant",
+      "Hi! I'm " + firstName + "'s assistant. Ask me about " + firstName + "'s skills, experience, projects, or how to get in touch."
+    );
+  }
+
+  // The conversation lives on the server (keyed by an HttpOnly cookie). On the
+  // first open, restore it so a page reload doesn't lose context; otherwise greet.
+  let restorePromise = null;
+  function restoreOnce() {
+    if (!restorePromise) {
+      restorePromise = fetch("/api/chat/history", { headers: { Accept: "application/json" } })
+        .then(function (res) {
+          return res.ok ? res.json() : { messages: [] };
+        })
+        .then(function (data) {
+          return Array.isArray(data.messages) ? data.messages : [];
+        })
+        .catch(function () {
+          return [];
+        })
+        .then(function (messages) {
+          messages.forEach(function (m) {
+            addMessage(m.role, m.content);
+            history.push({ role: m.role, content: m.content });
+          });
+          if (!history.length) greet();
+        });
+    }
+    return restorePromise;
+  }
+
+  async function resetChat() {
+    if (isSending) return;
+    try {
+      const res = await fetch("/api/chat/history", { method: "DELETE" });
+      if (!res.ok) throw new Error("reset failed");
+    } catch (err) {
+      addMessage("error", "Couldn't start a new chat. Please try again.");
+      return;
+    }
+    history.length = 0;
+    transcript.innerHTML = "";
+    restorePromise = Promise.resolve();
+    greet();
+    input.focus();
   }
 
   function close() {
@@ -176,6 +222,8 @@
     if (!text || isSending) return;
 
     isSending = true;
+    updateSendState();
+    await restoreOnce();
     addMessage("user", text);
     history.push({ role: "user", content: text });
     input.value = "";
@@ -186,10 +234,11 @@
     const typingEl = showTyping();
 
     try {
+      // Only the new message is sent; the server owns the conversation history.
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, history: history.slice(0, -1) }),
+        body: JSON.stringify({ message: text }),
       });
 
       const data = await res.json().catch(function () {
@@ -229,6 +278,7 @@
 
   sendBtn.addEventListener("click", send);
   closeBtn.addEventListener("click", close);
+  resetBtn.addEventListener("click", resetChat);
 
   overlay.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {

@@ -3,6 +3,8 @@ const assert = require("node:assert");
 
 // No Upstash env vars in the test environment, so this exercises the
 // in-memory (L1) path and the graceful "Redis disabled" fallback.
+process.env.UPSTASH_REDIS_REST_URL = "";
+process.env.UPSTASH_REDIS_REST_TOKEN = "";
 const cache = require("../lib/cache");
 
 test.beforeEach(() => cache._resetMemory());
