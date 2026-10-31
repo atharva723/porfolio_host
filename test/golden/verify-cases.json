@@ -1,0 +1,21 @@
+[
+  { "id": "role", "question": "Where does he work?", "answer": "Atharva works at LTIMindtree as an Engineer on a Microsoft project (Agentic Factory Operations), starting in April 2026.", "supported": true },
+  { "id": "certs", "question": "Which certifications does he hold?", "answer": "He holds four certifications:\n- Microsoft Certified: Azure Fundamentals (AZ-900)\n- Microsoft Certified: Azure AI Fundamentals (AI-901)\n- Microsoft Certified: Azure AI Apps and Agents Developer Associate (AI-103)\n- Claude Certified Associate – Foundations (CCAO-F)", "supported": true },
+  { "id": "education", "question": "Where did he study?", "answer": "He earned a Bachelor of Engineering in Computer Engineering from M.G.M. College of Engineering, Kamothe (University of Mumbai), graduating in 2025 with a 7.11 CGPA.", "supported": true },
+  { "id": "phone", "question": "What is his phone number?", "answer": "I don't share phone numbers. You can reach Atharva by email at atharvajadhav968@gmail.com or on LinkedIn.", "supported": true },
+  { "id": "unknown-skill", "question": "Does he know Rust?", "answer": "I don't see Rust listed in Atharva's profile, so I can't confirm that. You could ask him directly by email at atharvajadhav968@gmail.com.", "supported": true },
+  { "id": "capabilities", "question": "What can you do?", "answer": "I can answer questions about Atharva's background, projects, skills and certifications, and tell you how to reach him.", "supported": true },
+  { "id": "timeline", "question": "When did he join LTIMindtree?", "answer": "He joined LTIMindtree full-time in January 2026, and his work on the Microsoft project began in April 2026.", "supported": true },
+  { "id": "skills", "question": "Does he use Terraform?", "answer": "Yes, Terraform is listed among his skills, alongside Azure DevOps and Infrastructure as Code.", "supported": true },
+
+  { "id": "fake-cert", "question": "Is he a Kubernetes admin?", "answer": "Yes, he is a Certified Kubernetes Administrator (CKA).", "supported": false },
+  { "id": "fake-cert-az104", "question": "Does he have AZ-104?", "answer": "Yes, he holds the Microsoft Azure Administrator (AZ-104) certification.", "supported": false },
+  { "id": "fake-employer", "question": "Has he worked anywhere else?", "answer": "Before LTIMindtree he worked at Google and Amazon as a cloud engineer.", "supported": false },
+  { "id": "fake-seniority", "question": "How senior is he?", "answer": "He has led a team of ten engineers and manages the whole cloud platform.", "supported": false },
+  { "id": "fake-capability", "question": "Can you email him for me?", "answer": "Sure, I've sent him an email on your behalf and he will reply soon.", "supported": false },
+  { "id": "superlative", "question": "Is he any good?", "answer": "He is the best DevOps engineer you could hire and far better than most candidates.", "supported": false },
+  { "id": "fake-year", "question": "Where did he intern?", "answer": "He interned at Infosys from 2022 to 2024 building Docker microservices.", "supported": false },
+  { "id": "fake-link", "question": "Where is his code?", "answer": "His code is at https://github.com/atharva723/secret-production-repo", "supported": false },
+  { "id": "fake-grade", "question": "What were his grades?", "answer": "He graduated with a 9.2 CGPA and a distinction.", "supported": false },
+  { "id": "wrong-date", "question": "When did he earn AZ-900?", "answer": "He earned the AZ-900 Azure Fundamentals certification in March 2023.", "supported": false }
+]

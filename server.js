@@ -10,13 +10,12 @@ if (process.env.NODE_ENV !== "production") {
   }
 }
 
-const { buildSystemPrompt, buildGuardReminder, REFUSAL } = require("./lib/knowledge");
-const { generateReply, LLMError, cacheSignature } = require("./lib/llm");
+const { REFUSAL } = require("./lib/knowledge");
+const { LLMError } = require("./lib/llm");
 const { sanitize, looksLikeInjection } = require("./lib/guards");
-const cache = require("./lib/cache");
 const session = require("./lib/session");
 const rateLimit = require("./lib/ratelimit");
-const resumeSource = require("./lib/sources/resume");
+const agent = require("./lib/agent");
 const CONFIG = require("./public/js/config.js");
 
 const app = express();
@@ -140,10 +139,11 @@ app.post("/api/chat", async (req, res) => {
       return respond(400, { error: `Message is too long (max ${CONFIG.MAX_MESSAGE_CHARS} characters).` });
     }
 
-    // Short-circuit obvious injection / out-of-scope generation attempts.
+    // Short-circuit blatant prompt-injection phrases for free (no model call).
+    // Everything subtler is judged by the LLM guard inside agent.run().
     // Blocked messages are never stored in the session history.
     if (looksLikeInjection(cleanMessage)) {
-      return respond(200, { reply: REFUSAL });
+      return respond(200, { reply: REFUSAL, cached: false, kind: "refusal" });
     }
 
     sessionId = session.idFromRequest(req) || session.newId();
@@ -155,40 +155,17 @@ app.post("/api/chat", async (req, res) => {
     }
 
     const history = await session.load(sessionId);
-    const conversation = [...history, { role: "user", content: cleanMessage }];
+    const out = await agent.run({ message: cleanMessage, history });
 
-    // The live resume is part of the system prompt, so it is also part of the
-    // cache key: editing the Google Doc (or kb.json) changes the key and
-    // transparently invalidates cached answers that used the old text.
-    const resume = await resumeSource.get();
-    const systemPrompt = buildSystemPrompt({ resume });
-    const guard = buildGuardReminder();
-    const cacheKey = cache.makeKey([
-      "chat-v1",
-      cacheSignature(),
-      systemPrompt,
-      guard,
-      JSON.stringify(conversation),
-    ]);
-
-    const cached = await cache.get(cacheKey);
-    if (cached) {
+    // Only answered turns enter the conversation memory; redirects, refusals and
+    // "couldn't confirm" replies are shown to the visitor but never remembered.
+    if (out.store) {
       await session.append(sessionId, [
         { role: "user", content: cleanMessage },
-        { role: "assistant", content: cached.value },
+        { role: "assistant", content: out.reply },
       ]);
-      return respond(200, { reply: cached.value, cached: true });
     }
-
-    const reply = await generateReply(systemPrompt, conversation, guard);
-    // Await the stores so the durable (Redis) writes finish before a
-    // serverless instance can freeze after the response is sent.
-    await cache.set(cacheKey, reply);
-    await session.append(sessionId, [
-      { role: "user", content: cleanMessage },
-      { role: "assistant", content: reply },
-    ]);
-    return respond(200, { reply, cached: false });
+    return respond(200, { reply: out.reply, cached: out.cached, kind: out.kind });
   } catch (err) {
     const status = err instanceof LLMError ? err.status : 500;
     console.error("[/api/chat]", err.message);

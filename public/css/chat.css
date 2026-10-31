@@ -266,6 +266,23 @@
     margin: 0.2rem 0;
 }
 
+.ask-msg.assistant a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    overflow-wrap: anywhere;
+}
+
+.ask-msg.assistant a:hover {
+    color: var(--accent-bright, var(--accent));
+}
+
+.ask-msg.assistant a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 /* Typing indicator */
 .ask-typing {
     display: inline-flex;
@@ -399,28 +416,8 @@
 .ask-inputbox-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     margin-top: 0.5rem;
-}
-
-.ask-tools {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-.ask-tool {
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.55);
-    cursor: default;
-    font-size: 0.9rem;
 }
 
 .ask-send {
@@ -543,12 +540,6 @@ body.ask-open {
         font-size: 16px;
     }
 
-    .ask-tool {
-        width: 38px;
-        height: 38px;
-        font-size: 1rem;
-    }
-
     .ask-send {
         width: 42px;
         height: 42px;
@@ -556,15 +547,6 @@ body.ask-open {
 }
 
 @media (max-width: 400px) {
-    /* Hide the decorative tool icons on very narrow screens to save room */
-    .ask-tools {
-        display: none;
-    }
-
-    .ask-inputbox-row {
-        justify-content: flex-end;
-    }
-
     .ask-heading h2 {
         font-size: 1.5rem;
     }

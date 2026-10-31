@@ -28,9 +28,12 @@ recruiters ask questions and get answers grounded in the portfolio content.
   system prompt, guard, full conversation, and model/params, so a cached answer
   is only ever reused when still valid — editing the knowledge base changes the
   prompt and transparently invalidates stale answers.
-- Guardrails: prompt-injection filter, strict on-topic system prompt, input
-  validation, body-size limits, and per-IP rate limiting (shared Redis
-  counters, in-memory fallback).
+- Guardrails (see "How a message is handled" below): an **LLM input guard**
+  (scope / prompt-injection / safety, with Meta's Prompt Guard as a second
+  signal), an **answer verifier** (deterministic grounding checks + an LLM check
+  against the sources), input validation, body-size limits, and per-IP rate
+  limiting (shared Redis counters, in-memory fallback). If a safety check can't
+  run, the visitor gets a clear error — the bot never answers unchecked.
 - **Server-owned conversation memory:** the browser keeps only an opaque,
   HttpOnly session cookie; the conversation itself lives in Redis (in-memory
   fallback) for up to 1 hour of inactivity. Follow-up questions keep context,
@@ -70,13 +73,53 @@ Set locally in `.env` (gitignored) and, for production, in
 | -------------- | -------- | ------------------------------------------------------- |
 | `LLM_PROVIDER` | no       | `groq` (default), `mistral`, or `gemini`.               |
 | `LLM_API_KEY`  | yes      | API key for the chosen provider.                        |
-| `LLM_MODEL`    | no       | Override the default model (`openai/gpt-oss-20b` on Groq). |
+| `LLM_MODEL`    | no       | Model that writes answers (`openai/gpt-oss-20b` on Groq). |
+| `GUARD_MODEL`  | no       | Input-guard model (`qwen/qwen3.8-27b` on Groq).         |
+| `VERIFY_MODEL` | no       | Answer-verifier model (`openai/gpt-oss-120b` on Groq).  |
+| `PROMPT_GUARD_MODEL` | no | Prompt Guard model (`meta-llama/llama-prompt-guard-2-86m`, Groq only); set `off` to disable. |
+| `CHAT_BUDGET_MS` | no     | Time budget for one chat turn (default `25000`).        |
 
 Get a free Groq key at https://console.groq.com/keys (no credit card).
+
+Each pipeline stage runs on a **different model on purpose**: Groq's free-tier
+rate limits are per model (about 8,000 tokens/minute for the answer, guard and
+verifier models; 2,000 for `gpt-oss-safeguard`, which is why it isn't used), so
+sharing one model would let the stages starve each other. If the guard or
+verifier model is retired, the call falls back to `LLM_MODEL` automatically and
+logs a warning.
 
 > **Note:** Groq periodically retires models. If the chat returns a 502
 > "assistant is unavailable", check https://console.groq.com/docs/models and
 > update `LLM_MODEL` (or the default in `lib/llm.js`).
+
+### How a message is handled
+
+```
+cache hit? ──yes──► answer (it was verified when first stored)
+   │ no
+   ▼
+input guard ─ off-topic ─► friendly redirect      (nothing is answered or remembered)
+   │          injection ─► refusal                (policy model, or Prompt Guard >= 0.99)
+   │          unsafe    ─► polite decline
+   │ allow
+   ▼
+answer model  (KB + live resume in the prompt; sources are data, not instructions)
+   ▼
+verifier: links / e-mails / numbers must appear in the sources (free), then an
+          LLM check of every claim against the sources
+   │ supported ──► cached + returned
+   │ not supported ─► regenerate once with generic feedback ─► verify again
+   │                  still not supported ─► "I couldn't confirm that" + contact details
+   ▼
+guard or verifier unavailable ─► 503 "can't run my safety checks" (never unchecked)
+```
+
+`POST /api/chat` returns `{ reply, cached, kind }` where `kind` is `answer`,
+`redirect`, `refusal`, `decline` or `unverified`. Only `answer` turns are
+remembered in the session. A cheap regex still rejects blatant phrases such as
+"ignore all previous instructions" before any model is called; everything else
+is judged by the models. Try the real models on the golden cases with
+`npm run eval:live -- guard|verify|e2e` (spends API tokens).
 
 ### Response cache (optional)
 
@@ -177,7 +220,12 @@ nothing.
 ```
 server.js              Express app: static hosting + POST /api/chat
 lib/
-  llm.js               Provider abstraction (Groq/Mistral/Gemini) + timeouts
+  agent.js             One chat turn: cache -> guard -> answer -> verify -> (retry) -> reply
+  guard.js             LLM input guard (+ Prompt Guard), fail-closed, verdict cache
+  verify.js            Answer verifier: grounding + LLM check with evidence selection
+  grounding.js         Deterministic checks: links, e-mails, phones, numbers, years
+  messages.js          Fixed redirect / refusal / decline / "can't confirm" replies
+  llm.js               Provider abstraction + per-stage models, retries, deadlines
   knowledge.js         Builds the system prompt from kb.json + the live resume
   kb.js                Loads/validates kb/kb.json and renders it as prompt text
   kb-build.js          README cleaning + repo-link helpers for the KB sync
@@ -186,7 +234,7 @@ lib/
   csv.js               Dependency-free CSV parser
   text.js              Shared text cleaning + phone redaction
   sources/resume.js    Live resume: published Google Doc -> text (cached, safe)
-  guards.js            sanitize / injection detection / in-memory limiter (fallback)
+  guards.js            sanitize / blatant-injection pre-filter / in-memory limiter (fallback)
   cache.js             Response cache (in-memory LRU + optional Upstash Redis)
   redis.js             Shared Upstash Redis client (null when unconfigured)
   session.js           Server-owned chat sessions (cookie id, Redis memory, lock)
@@ -197,6 +245,7 @@ scripts/
   import-linkedin.js   `npm run kb:linkedin` — import a LinkedIn export
   linkedin.config.json Import decisions that survive re-imports
   check-kb.js          `npm run kb:check` — staleness / drift report
+  eval-live.js         `npm run eval:live` — real-model evaluation of guard / verifier / pipeline
 public/
   index.html
   css/{style,chat}.css
@@ -210,7 +259,7 @@ public/
   data/
     projects.json      Project cards (auto-generated by the n8n automation)
 automation/            n8n workflow + launcher that syncs project cards from GitHub
-test/                  node:test suites
+test/                  node:test suites (+ helpers/llm-stub.js, golden/*.json eval cases)
 vercel.json            Vercel routing
 ```
 
@@ -240,5 +289,13 @@ vercel.json            Vercel routing
   all visitors.
 - Chat text is stored in Redis for up to the session TTL (default 1 hour of
   inactivity) so follow-ups work; visitors can wipe it with "New chat".
-- Free LLM tiers have per-minute token limits; the app surfaces provider `429`s
-  as a friendly "busy, try again" message.
+- Free LLM tiers have per-minute token limits (Groq: ~8,000 tokens/min per
+  model). One answered message costs roughly 1 guard call (~0.4k tokens), 1
+  answer call (~3.5k) and 1–2 verifier calls (~1.5k–5k), each on its own model,
+  so only a couple of answers per minute fit the free tier across ALL visitors.
+  The app surfaces provider `429`s as a friendly "busy, try again" message; a
+  paid Groq tier removes the limit. Moving facts out of the prompt and into
+  on-demand tools (planned) will cut the answer cost substantially.
+- Vercel function duration limits apply to a chat turn (up to ~5 model calls);
+  `CHAT_BUDGET_MS` (default 25 s) caps the pipeline and skips the regeneration
+  when time is short. Check your plan's maximum duration before deploying.

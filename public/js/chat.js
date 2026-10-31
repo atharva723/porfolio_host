@@ -39,12 +39,6 @@
     '  <div class="ask-inputbox">',
     '    <textarea id="askInput" rows="1" maxlength="' + MAX_CHARS + '" placeholder="Ask me anything about ' + escapeHtml(firstName) + '..."></textarea>',
     '    <div class="ask-inputbox-row">',
-    '      <div class="ask-tools" aria-hidden="true">',
-    '        <span class="ask-tool"><i class="fas fa-paperclip"></i></span>',
-    '        <span class="ask-tool"><i class="fas fa-globe"></i></span>',
-    '        <span class="ask-tool"><i class="fas fa-sliders-h"></i></span>',
-    '        <span class="ask-tool"><i class="fas fa-code"></i></span>',
-    "      </div>",
     '      <button class="ask-send" id="askSend" type="button" aria-label="Send" disabled>',
     '        <i class="fas fa-arrow-up"></i>',
     "      </button>",
@@ -170,9 +164,26 @@
   }
 
   // Minimal, XSS-safe markdown -> HTML. Input is HTML-escaped FIRST, so only the
-  // whitelisted tags below can ever be produced.
+  // whitelisted tags below can ever be produced. Links (markdown or bare http/https
+  // URLs) are lifted out before inline formatting so underscores inside a URL are
+  // never mistaken for italics, then restored as safe, new-tab anchors.
   function formatMarkdown(text) {
-    let html = escapeHtml(String(text));
+    const links = [];
+    const stash = function (label, url) {
+      links.push({ label: label, url: url });
+      return "\u0000" + (links.length - 1) + "\u0000";
+    };
+
+    let src = String(text).replace(/\u0000/g, "");
+    src = src.replace(/\[([^\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)/g, function (m, label, url) {
+      return stash(label, url);
+    });
+    src = src.replace(/https?:\/\/[^\s<>"'`)\]]+/g, function (m) {
+      const url = m.replace(/[.,;:!?]+$/, "");
+      return stash(url, url) + m.slice(url.length);
+    });
+
+    let html = escapeHtml(src);
 
     // Inline code: `code`
     html = html.replace(/`([^`]+?)`/g, "<code>$1</code>");
@@ -193,7 +204,13 @@
     // Tidy stray breaks around lists
     html = html.replace(/<br>\s*(<ul>|<\/ul>|<li>)/g, "$1").replace(/(<\/li>|<\/ul>)\s*<br>/g, "$1");
 
-    return html;
+    // Restore links last, so their text is escaped exactly once and never re-formatted.
+    return html.replace(/\u0000(\d+)\u0000/g, function (m, i) {
+      const link = links[Number(i)];
+      if (!link) return "";
+      const shown = /^https?:\/\//i.test(link.label) && link.label.length > 48 ? link.label.slice(0, 45) + "…" : link.label;
+      return '<a href="' + escapeHtml(link.url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(shown) + "</a>";
+    });
   }
 
   function showTyping() {

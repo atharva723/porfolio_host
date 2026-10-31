@@ -7,10 +7,9 @@ process.env.UPSTASH_REDIS_REST_TOKEN = "";
 process.env.RESUME_DOC_URL = "";
 
 // Replace the LLM layer with a stub BEFORE loading the app, so tests never
-// make a network call. server.js destructures generateReply at require time,
-// so patching the module export here is picked up.
-const llm = require("../lib/llm");
-llm.generateReply = async () => "MOCKED_REPLY";
+// make a network call (guard + verifier are stubbed too).
+const { installLlmStub } = require("./helpers/llm-stub");
+installLlmStub({ reply: "MOCKED_REPLY" });
 
 const app = require("../server");
 

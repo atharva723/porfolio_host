@@ -7,12 +7,15 @@ process.env.UPSTASH_REDIS_REST_TOKEN = "";
 process.env.RESUME_DOC_URL = "";
 
 // Capture what the (stubbed) LLM receives so we can assert on server-owned history.
-const llm = require("../lib/llm");
+// Guard and verifier are stubbed too, so no test touches the network.
+const { installLlmStub } = require("./helpers/llm-stub");
 const received = [];
-llm.generateReply = async (_system, conversation) => {
-  received.push(conversation.map((m) => ({ ...m })));
-  return "REPLY_" + received.length;
-};
+installLlmStub({
+  reply: ({ conversation }) => {
+    received.push(conversation.map((m) => ({ ...m })));
+    return "REPLY_" + received.length;
+  },
+});
 
 const app = require("../server");
 

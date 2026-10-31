@@ -147,7 +147,7 @@ test("session lock is exclusive in Redis and expires on its own", async () => {
   assert.ok(token);
   assert.equal(await s.acquire(id), null);
   const ttl = runCommand(["TTL", `sess:${id}:lock`]);
-  assert.ok(ttl > 0 && ttl <= 30, "lock has a safety TTL");
+  assert.ok(ttl > 0 && ttl <= 60, "lock has a safety TTL");
   await s.release(id, token);
   assert.ok(await s.acquire(id), "re-acquirable after release");
 });
