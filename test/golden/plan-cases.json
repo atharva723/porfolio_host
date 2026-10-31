@@ -1,0 +1,20 @@
+[
+  { "message": "Which certifications does he hold?", "include": ["get_certifications"] },
+  { "message": "Is his AZ-900 still valid, and where can I verify it?", "include": ["get_certifications"] },
+  { "message": "Does he know Terraform?", "include": ["get_skills"] },
+  { "message": "Does he know Rust?", "include": ["get_skills"] },
+  { "message": "What is his email address?", "include": ["get_contact_info"] },
+  { "message": "What is his salary expectation?", "include": ["get_contact_info"] },
+  { "message": "Is he open to relocating?", "include": ["get_contact_info"] },
+  { "message": "Where did he study and what were his grades?", "include": ["get_education"] },
+  { "message": "and what about his 12th?", "lastAssistant": "Atharva earned a B.E. in Computer Engineering from M.G.M. College of Engineering, Kamothe, graduating in 2025.", "include": ["get_education"] },
+  { "message": "What is his current role?", "anyOf": ["get_experience", "get_resume"] },
+  { "message": "Tell me about him", "anyOf": ["get_resume", "get_experience"] },
+  { "message": "Has he built anything with RAG?", "anyOf": ["get_projects", "get_skills"] },
+  { "message": "Show me his projects", "include": ["get_projects"] },
+  { "message": "Where can I see his projects on the website?", "include": ["get_site_links"] },
+  { "message": "What does his LinkedIn say?", "include": ["get_linkedin_profile"] },
+  { "message": "Hi!", "empty": true },
+  { "message": "What can you do?", "empty": true },
+  { "message": "thanks, that was helpful", "lastAssistant": "He holds four certifications.", "empty": true }
+]

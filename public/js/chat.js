@@ -84,11 +84,48 @@
     }, 350);
   }
 
+  // Starter questions shown with the greeting. Later suggestions come from the server
+  // (fixed text chosen by code from the topics already covered, never model-written).
+  const STARTERS = [
+    "What is his current role?",
+    "Which certifications does he hold?",
+    "What projects has he built?",
+    "How can I contact him?",
+  ];
+
+  function clearChips() {
+    transcript.querySelectorAll(".ask-chips").forEach(function (el) {
+      el.remove();
+    });
+  }
+
+  function showChips(list) {
+    clearChips();
+    if (!Array.isArray(list) || !list.length) return;
+    const wrap = document.createElement("div");
+    wrap.className = "ask-chips";
+    wrap.setAttribute("role", "group");
+    wrap.setAttribute("aria-label", "Suggested questions");
+    list.slice(0, 4).forEach(function (text) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "ask-chip";
+      btn.textContent = String(text).slice(0, 80);
+      btn.addEventListener("click", function () {
+        send(String(text));
+      });
+      wrap.appendChild(btn);
+    });
+    transcript.appendChild(wrap);
+    transcript.scrollTop = transcript.scrollHeight;
+  }
+
   function greet() {
     addMessage(
       "assistant",
       "Hi! I'm " + firstName + "'s assistant. Ask me about " + firstName + "'s skills, experience, projects, or how to get in touch."
     );
+    showChips(STARTERS);
   }
 
   // The conversation lives on the server (keyed by an HttpOnly cookie). On the
@@ -154,6 +191,13 @@
         badge.title = "Served instantly from cache (no AI call)";
         badge.innerHTML = '<i class="fas fa-bolt"></i> cached';
         el.appendChild(badge);
+      }
+      // Where the answer came from: fixed labels of the lookups that ran.
+      if (opts && Array.isArray(opts.sources) && opts.sources.length) {
+        const src = document.createElement("div");
+        src.className = "ask-sources";
+        src.textContent = "Sources: " + opts.sources.join(" · ");
+        el.appendChild(src);
       }
     } else {
       el.textContent = text;
@@ -234,18 +278,22 @@
   }
 
   // ---- Send ----
-  async function send() {
-    const text = input.value.trim();
+  async function send(preset) {
+    // Suggestion chips pass their text; the send button/Enter pass an Event (ignored).
+    const text = (typeof preset === "string" ? preset : input.value).trim();
     if (!text || isSending) return;
 
     isSending = true;
     updateSendState();
     await restoreOnce();
+    clearChips();
     addMessage("user", text);
     history.push({ role: "user", content: text });
-    input.value = "";
-    autosize();
-    if (caret) caret.snap();
+    if (typeof preset !== "string") {
+      input.value = "";
+      autosize();
+      if (caret) caret.snap();
+    }
     updateSendState();
 
     const typingEl = showTyping();
@@ -266,8 +314,9 @@
       if (!res.ok) {
         addMessage("error", data.error || "Something went wrong. Please try again.");
       } else {
-        addMessage("assistant", data.reply, { cached: data.cached === true });
+        addMessage("assistant", data.reply, { cached: data.cached === true, sources: data.kind === "answer" ? data.sources : null });
         history.push({ role: "assistant", content: data.reply });
+        showChips(data.suggestions);
       }
     } catch (err) {
       typingEl.remove();

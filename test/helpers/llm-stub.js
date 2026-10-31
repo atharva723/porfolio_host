@@ -6,11 +6,13 @@ const llm = require("../../lib/llm");
 
 const ALLOW = () => ({ verdict: "allow", reason: "ok" });
 const SUPPORTED = () => ({ supported: true, issues: [] });
+const NO_TOOLS = () => ({ tools: [] });
 
 /**
  * @param {{
  *   reply?: string | ((ctx: {conversation: object[], trailer: string, n: number}) => string),
  *   guard?: (o: object) => object | string,
+ *   plan?: (o: object) => object | string,
  *   verify?: (o: object) => object | string,
  *   promptGuard?: (o: object) => number | string,
  * }} [opts]
@@ -21,6 +23,7 @@ function installLlmStub(opts = {}) {
     calls: [],
     reply: opts.reply === undefined ? "MOCKED_REPLY" : opts.reply,
     guard: opts.guard || ALLOW,
+    plan: opts.plan || NO_TOOLS,
     verify: opts.verify || SUPPORTED,
     promptGuard: opts.promptGuard || (() => 0.001),
     count: (purpose) => state.calls.filter((c) => c.purpose === purpose).length,
@@ -37,7 +40,7 @@ function installLlmStub(opts = {}) {
 
   llm.complete = async (o) => {
     state.calls.push({ ...o });
-    const handler = { guard: state.guard, verify: state.verify, promptguard: state.promptGuard }[o.purpose];
+    const handler = { guard: state.guard, plan: state.plan, verify: state.verify, promptguard: state.promptGuard }[o.purpose];
     if (!handler) throw new Error(`unexpected purpose ${o.purpose}`);
     const out = handler(o);
     return typeof out === "string" ? out : o.purpose === "promptguard" ? String(out) : JSON.stringify(out);
@@ -46,4 +49,4 @@ function installLlmStub(opts = {}) {
   return state;
 }
 
-module.exports = { installLlmStub, ALLOW, SUPPORTED };
+module.exports = { installLlmStub, ALLOW, SUPPORTED, NO_TOOLS };

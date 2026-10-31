@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert");
 
-for (const k of ["LLM_MODEL", "GUARD_MODEL", "VERIFY_MODEL", "PROMPT_GUARD_MODEL", "LLM_PROVIDER"]) delete process.env[k];
+for (const k of ["LLM_MODEL", "GUARD_MODEL", "PLAN_MODEL", "VERIFY_MODEL", "PROMPT_GUARD_MODEL", "LLM_PROVIDER"]) delete process.env[k];
 process.env.LLM_API_KEY = "test-key-not-real";
 
 const llm = require("../lib/llm");
@@ -28,7 +28,7 @@ test.beforeEach(() => {
 });
 test.afterEach(() => {
   global.fetch = realFetch;
-  for (const k of ["LLM_MODEL", "GUARD_MODEL", "VERIFY_MODEL", "PROMPT_GUARD_MODEL"]) delete process.env[k];
+  for (const k of ["LLM_MODEL", "GUARD_MODEL", "PLAN_MODEL", "VERIFY_MODEL", "PROMPT_GUARD_MODEL"]) delete process.env[k];
 });
 
 const guardCall = (extra = {}) => llm.complete({ purpose: "guard", system: "S", messages: [{ role: "user", content: "hi" }], ...extra });
@@ -37,8 +37,10 @@ const guardCall = (extra = {}) => llm.complete({ purpose: "guard", system: "S", 
 test("each stage resolves to its own model by default (separate Groq rate-limit buckets)", () => {
   assert.equal(llm.resolveModel("main"), "openai/gpt-oss-20b");
   assert.equal(llm.resolveModel("guard"), "qwen/qwen3.8-27b");
+  assert.equal(llm.resolveModel("plan"), "qwen/qwen3.8-27b");
   assert.equal(llm.resolveModel("verify"), "openai/gpt-oss-120b");
   assert.equal(llm.resolveModel("promptguard"), "meta-llama/llama-prompt-guard-2-86m");
+  // guard + planner share a model on purpose; the others are all different buckets
   const models = new Set(["main", "guard", "verify", "promptguard"].map((p) => llm.resolveModel(p)));
   assert.equal(models.size, 4);
 });
@@ -46,14 +48,16 @@ test("each stage resolves to its own model by default (separate Groq rate-limit 
 test("env overrides apply per stage and Prompt Guard can be switched off", () => {
   process.env.LLM_MODEL = "m-main";
   process.env.GUARD_MODEL = "m-guard";
+  process.env.PLAN_MODEL = "m-plan";
   process.env.VERIFY_MODEL = "m-verify";
-  assert.deepEqual(["main", "guard", "verify"].map((p) => llm.resolveModel(p)), ["m-main", "m-guard", "m-verify"]);
+  assert.deepEqual(["main", "guard", "plan", "verify"].map((p) => llm.resolveModel(p)), ["m-main", "m-guard", "m-plan", "m-verify"]);
   process.env.PROMPT_GUARD_MODEL = "off";
   assert.equal(llm.resolveModel("promptguard"), null);
 });
 
 test("other providers use their main model for every stage and have no Prompt Guard", () => {
   assert.equal(llm.resolveModel("guard", "mistral"), "mistral-small-latest");
+  assert.equal(llm.resolveModel("plan", "mistral"), "mistral-small-latest");
   assert.equal(llm.resolveModel("verify", "mistral"), "mistral-small-latest");
   assert.equal(llm.resolveModel("promptguard", "mistral"), null);
   assert.equal(llm.resolveModel("guard", "nonsense"), null);

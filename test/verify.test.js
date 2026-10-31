@@ -38,9 +38,45 @@ AI & Agentic Automation Engineer
 Engineer, Cloud & Infra Management Apr 2026 – Present
 LTIMindtree | Microsoft Project: Agentic Factory Operations
 - Developed Copilot Studio agents integrated with Power Automate`;
-const EVIDENCE = { kb: KB, resume: RESUME };
+const EVIDENCE = [
+  { label: "kb", text: KB },
+  { label: "resume", text: RESUME },
+];
 
-const check = (answer, question = "q?") => verify.check({ question, answer, evidence: EVIDENCE });
+// Default to the excerpt-first path (fullPassMax: 0) so those mechanics stay covered;
+// single-pass behaviour for small evidence has its own tests below.
+const check = (answer, question = "q?", extra = {}) => verify.check({ question, answer, evidence: EVIDENCE, fullPassMax: 0, ...extra });
+
+test("small evidence (e.g. tool results) is verified in ONE pass over everything", async () => {
+  const r = await check("He holds the Azure Fundamentals certification (AZ-900).", "certs?", { fullPassMax: 100000 });
+  assert.deepEqual(r, { supported: true, via: "llm", escalated: false });
+  assert.equal(stub.count("verify"), 1);
+  const sources = /<sources>([\s\S]*?)<\/sources>/.exec(stub.calls[0].messages[0].content)[1];
+  assert.match(sources, /Copilot Studio/, "everything is included, not just an excerpt");
+});
+
+test("small evidence that fails is rejected after ONE call (no pointless second pass)", async () => {
+  stub.verify = () => ({ supported: false, issues: ["no CKA"] });
+  const r = await check("He is a Certified Kubernetes Administrator.", "q?", { fullPassMax: 100000 });
+  assert.equal(r.supported, false);
+  assert.equal(r.escalated, false);
+  assert.equal(stub.count("verify"), 1);
+});
+
+test("evidence parts keep their own labels in the prompt", async () => {
+  await verify.check({
+    question: "q?",
+    answer: "He holds AZ-900.",
+    evidence: [
+      { label: "profile", text: "Atharva Jadhav — engineer." },
+      { label: "get_certifications", text: "certifications:\n- AZ-900 earned Aug 2026" },
+    ],
+  });
+  const sources = /<sources>([\s\S]*?)<\/sources>/.exec(stub.calls[0].messages[0].content)[1];
+  assert.match(sources, /\[profile\] Atharva Jadhav/);
+  assert.match(sources, /\[get_certifications\] certifications:/);
+  assert.match(sources, /\[get_certifications\] - AZ-900 earned Aug 2026/);
+});
 
 test("toRecords keeps indented continuation lines with their parent and tags the origin", () => {
   const records = verify.toRecords(EVIDENCE);
@@ -126,7 +162,8 @@ test("the verifier policy treats refusals, contact suggestions and 'not availabl
   const p = verify.policy();
   assert.match(p, /saying a detail is not available/i);
   assert.match(p, /suggesting contact/i);
-  assert.match(p, /resume\] .*win/is);
+  assert.match(p, /resume_\*/);
+  assert.match(p, /wins over \[kb\] lines and linkedin_\* fields/);
   assert.match(p, /send messages, book meetings/);
 });
 

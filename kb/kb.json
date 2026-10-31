@@ -87,37 +87,43 @@
       "id": "fact-employment-timeline",
       "source": "owner",
       "updated": "2026-10-31",
-      "text": "Atharva joined LTIMindtree full-time in January 2026. His work as an AI engineer on the Microsoft project (Agentic Factory Operations) began in April 2026."
+      "text": "Atharva joined LTIMindtree full-time in January 2026. His work as an AI engineer on the Microsoft project (Agentic Factory Operations) began in April 2026.",
+      "topic": "experience"
     },
     {
       "id": "fact-contact",
       "source": "owner",
       "updated": "2026-10-30",
-      "text": "Best ways to reach Atharva: email (atharvajadhav968@gmail.com) or LinkedIn."
+      "text": "Best ways to reach Atharva: email (atharvajadhav968@gmail.com) or LinkedIn.",
+      "topic": "contact"
     },
     {
       "id": "fact-availability",
       "source": "owner",
       "updated": "2026-10-30",
-      "text": "Availability and notice period are not listed; ask Atharva directly."
+      "text": "Availability and notice period are not listed; ask Atharva directly.",
+      "topic": "contact"
     },
     {
       "id": "fact-relocation",
       "source": "owner",
       "updated": "2026-10-30",
-      "text": "Relocation and remote-work preferences are open to discussion; reach out via email or LinkedIn."
+      "text": "Relocation and remote-work preferences are open to discussion; reach out via email or LinkedIn.",
+      "topic": "contact"
     },
     {
       "id": "fact-salary",
       "source": "owner",
       "updated": "2026-10-30",
-      "text": "Salary expectations are not listed; they are best discussed directly."
+      "text": "Salary expectations are not listed; they are best discussed directly.",
+      "topic": "contact"
     },
     {
       "id": "fact-phone",
       "source": "owner",
       "updated": "2026-10-30",
-      "text": "Atharva's phone number is never shared by this assistant; point people to email or LinkedIn instead."
+      "text": "Atharva's phone number is never shared by this assistant; point people to email or LinkedIn instead.",
+      "topic": "contact"
     }
   ],
   "projects": [

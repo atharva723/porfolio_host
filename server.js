@@ -155,7 +155,22 @@ app.post("/api/chat", async (req, res) => {
     }
 
     const history = await session.load(sessionId);
+    const started = Date.now();
     const out = await agent.run({ message: cleanMessage, history });
+
+    // One structured line per turn for Vercel logs: counts and names only, never message text.
+    console.info(
+      JSON.stringify({
+        evt: "chat",
+        kind: out.kind,
+        cached: out.cached,
+        mode: out.trace.mode,
+        guard: out.trace.guard && out.trace.guard.verdict,
+        tools: (out.trace.tools || []).map((t) => t.name),
+        regenerated: out.trace.regenerated,
+        ms: Date.now() - started,
+      })
+    );
 
     // Only answered turns enter the conversation memory; redirects, refusals and
     // "couldn't confirm" replies are shown to the visitor but never remembered.
@@ -165,7 +180,7 @@ app.post("/api/chat", async (req, res) => {
         { role: "assistant", content: out.reply },
       ]);
     }
-    return respond(200, { reply: out.reply, cached: out.cached, kind: out.kind });
+    return respond(200, { reply: out.reply, cached: out.cached, kind: out.kind, sources: out.sources, suggestions: out.suggestions });
   } catch (err) {
     const status = err instanceof LLMError ? err.status : 500;
     console.error("[/api/chat]", err.message);

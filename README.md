@@ -75,6 +75,7 @@ Set locally in `.env` (gitignored) and, for production, in
 | `LLM_API_KEY`  | yes      | API key for the chosen provider.                        |
 | `LLM_MODEL`    | no       | Model that writes answers (`openai/gpt-oss-20b` on Groq). |
 | `GUARD_MODEL`  | no       | Input-guard model (`qwen/qwen3.8-27b` on Groq).         |
+| `PLAN_MODEL`   | no       | Tool-planner model (`qwen/qwen3.8-27b` on Groq).        |
 | `VERIFY_MODEL` | no       | Answer-verifier model (`openai/gpt-oss-120b` on Groq).  |
 | `PROMPT_GUARD_MODEL` | no | Prompt Guard model (`meta-llama/llama-prompt-guard-2-86m`, Groq only); set `off` to disable. |
 | `CHAT_BUDGET_MS` | no     | Time budget for one chat turn (default `25000`).        |
@@ -103,23 +104,46 @@ input guard ─ off-topic ─► friendly redirect      (nothing is answered or 
    │          unsafe    ─► polite decline
    │ allow
    ▼
-answer model  (KB + live resume in the prompt; sources are data, not instructions)
+planner   a small model picks which lookup tools the message needs, as JSON
    ▼
-verifier: links / e-mails / numbers must appear in the sources (free), then an
-          LLM check of every claim against the sources
-   │ supported ──► cached + returned
+tools     read-only code over the KB + live resume (certifications, education,
+          projects, skills, experience, contact, LinkedIn snapshot, resume, site links)
+   ▼
+answer model   sees ONLY the lookup results and cannot call tools itself
+   ▼
+verifier: links / e-mails / numbers must appear in the lookup results (free), then
+          an LLM check of every claim against them
+   │ supported ──► cached + returned (with source labels and follow-up chips)
    │ not supported ─► regenerate once with generic feedback ─► verify again
    │                  still not supported ─► "I couldn't confirm that" + contact details
    ▼
 guard or verifier unavailable ─► 503 "can't run my safety checks" (never unchecked)
 ```
 
-`POST /api/chat` returns `{ reply, cached, kind }` where `kind` is `answer`,
-`redirect`, `refusal`, `decline` or `unverified`. Only `answer` turns are
+**Why the answering model has no tools ("plan, then execute").** A native
+tool-calling loop re-sends the prompt on every round (little token saving), and
+text injected into a tool result (e.g. a poisoned resume) could make the model
+call more tools. Here the planner's JSON is validated against the registry
+(unknown names and bad arguments are dropped, at most 3 tools run) and the tools
+run as plain code, so tool output can never trigger another tool. If the planner
+can't produce a usable plan, the turn falls back to **context mode** (the whole
+KB + resume in the prompt: bigger, same guarantees).
+
+**Tools** live one-per-file in [`lib/tools/`](lib/tools/); each exports
+`name, label, topic, suggestion, description, parameters, run(args, ctx)` and is
+registered in `lib/tools/index.js`. Results are computed by code (counts, expiry
+status from the clock, "is X listed?" as a definite yes/no), then rendered as
+one fact per line for both the answering model and the verifier.
+
+`POST /api/chat` returns `{ reply, cached, kind, sources, suggestions }`:
+`kind` is `answer`, `redirect`, `refusal`, `decline` or `unverified`; `sources`
+are fixed labels of the lookups that ran; `suggestions` are follow-up questions
+chosen by code from the topics not yet covered. Only `answer` turns are
 remembered in the session. A cheap regex still rejects blatant phrases such as
 "ignore all previous instructions" before any model is called; everything else
 is judged by the models. Try the real models on the golden cases with
-`npm run eval:live -- guard|verify|e2e` (spends API tokens).
+`npm run eval:live -- guard|plan|verify|e2e` (spends API tokens). Each turn logs
+one JSON line (kind, mode, tools, timing, never message text) for Vercel logs.
 
 ### Response cache (optional)
 
@@ -220,13 +244,15 @@ nothing.
 ```
 server.js              Express app: static hosting + POST /api/chat
 lib/
-  agent.js             One chat turn: cache -> guard -> answer -> verify -> (retry) -> reply
+  agent.js             One chat turn: cache -> guard -> plan -> tools -> answer -> verify -> reply
+  planner.js           Picks tools + arguments as validated JSON (never throws)
+  tools/               Read-only tools, one file each + registry (index.js), schema.js, render.js
   guard.js             LLM input guard (+ Prompt Guard), fail-closed, verdict cache
-  verify.js            Answer verifier: grounding + LLM check with evidence selection
+  verify.js            Answer verifier: grounding + LLM check, single pass or excerpt + full
   grounding.js         Deterministic checks: links, e-mails, phones, numbers, years
   messages.js          Fixed redirect / refusal / decline / "can't confirm" replies
   llm.js               Provider abstraction + per-stage models, retries, deadlines
-  knowledge.js         Builds the system prompt from kb.json + the live resume
+  knowledge.js         Prompts: lean lookup prompt + full-context fallback prompt
   kb.js                Loads/validates kb/kb.json and renders it as prompt text
   kb-build.js          README cleaning + repo-link helpers for the KB sync
   kb-check.js          Drift check: KB vs live resume, snapshot staleness
@@ -234,6 +260,7 @@ lib/
   csv.js               Dependency-free CSV parser
   text.js              Shared text cleaning + phone redaction
   sources/resume.js    Live resume: published Google Doc -> text (cached, safe)
+  sources/resume-sections.js  Splits the resume text into sections for the tools
   guards.js            sanitize / blatant-injection pre-filter / in-memory limiter (fallback)
   cache.js             Response cache (in-memory LRU + optional Upstash Redis)
   redis.js             Shared Upstash Redis client (null when unconfigured)
@@ -290,12 +317,13 @@ vercel.json            Vercel routing
 - Chat text is stored in Redis for up to the session TTL (default 1 hour of
   inactivity) so follow-ups work; visitors can wipe it with "New chat".
 - Free LLM tiers have per-minute token limits (Groq: ~8,000 tokens/min per
-  model). One answered message costs roughly 1 guard call (~0.4k tokens), 1
-  answer call (~3.5k) and 1–2 verifier calls (~1.5k–5k), each on its own model,
-  so only a couple of answers per minute fit the free tier across ALL visitors.
-  The app surfaces provider `429`s as a friendly "busy, try again" message; a
-  paid Groq tier removes the limit. Moving facts out of the prompt and into
-  on-demand tools (planned) will cut the answer cost substantially.
-- Vercel function duration limits apply to a chat turn (up to ~5 model calls);
-  `CHAT_BUDGET_MS` (default 25 s) caps the pipeline and skips the regeneration
-  when time is short. Check your plan's maximum duration before deploying.
+  model). Each stage runs on its own model, and the lookup prompt is small, so a
+  typical answered turn costs roughly 0.4k (guard) + 0.9k (planner), both on the
+  Qwen bucket, ~1.3–2k on the answer model and ~1–1.5k on the verifier. That fits
+  about 4 answered turns per minute across ALL visitors on the free tier (the
+  context-mode fallback is ~3.5k on the answer model, about 2 per minute). The app
+  surfaces provider `429`s as a friendly "busy, try again" message; a paid Groq
+  tier removes the limit.
+- Vercel Hobby with Fluid compute allows 300 s per request; a chat turn runs a few
+  seconds, and `CHAT_BUDGET_MS` (default 25 s) caps the pipeline and skips the
+  regeneration when time is short.
