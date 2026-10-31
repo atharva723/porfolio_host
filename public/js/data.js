@@ -132,23 +132,6 @@ const portfolioData = {
     ]
   },
 
-  /* ---- Education (used by the chat assistant; not rendered on the page) ---- */
-  education: {
-    items: [
-      {
-        degree: "Bachelor of Engineering (B.E.) in Computer Engineering",
-        institution: "M.G.M. College of Engineering, Kamothe",
-        graduated: "2025",
-        score: "7.11 CGPA overall, 8.21 CGPA in the final semester"
-      },
-      {
-        degree: "Higher Secondary Certificate (HSC, 12th)",
-        institution: "P.E. Society's High School & Jr. College (English Medium)",
-        score: "77% in the HSC board exams"
-      }
-    ]
-  },
-
   /* ---- Experience section ---- */
   experience: {
     tag: "Experience",

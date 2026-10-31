@@ -5,8 +5,9 @@ recruiters ask questions and get answers grounded in the portfolio content.
 
 - **Frontend:** vanilla HTML/CSS/JS (no build step), content-driven from `public/js/data.js`.
 - **Backend:** small Node.js/Express app exposing `POST /api/chat`.
-- **AI:** RAG-lite — the knowledge base (portfolio data + `knowledge.md`) is
-  injected into the system prompt of a swappable LLM provider.
+- **AI:** the assistant answers from its own knowledge base (`kb/kb.json`) plus
+  your **live resume** (a published Google Doc), injected into the system prompt
+  of a swappable LLM provider. It does not read the website's `data.js`.
 - **Caching:** identical questions reuse a stored answer (in-memory + optional
   Upstash Redis) to cut redundant LLM calls.
 - **Automation:** an n8n workflow keeps the project cards in sync with GitHub
@@ -101,6 +102,18 @@ Without these, the app silently falls back to in-memory caching.
 > **Security:** never commit a real key. Keep it only in `.env` (local) and
 > Vercel env vars. If a key is ever exposed, rotate it in the provider console.
 
+### Live resume
+
+| Variable               | Required | Description                                                                  |
+| ---------------------- | -------- | ---------------------------------------------------------------------------- |
+| `RESUME_DOC_URL`       | no       | Published-to-web link of the resume Google Doc (`.../document/d/e/<id>/pub`). |
+| `RESUME_CACHE_SECONDS` | no       | How long a fetched copy is reused (default `3600`).                          |
+
+Google Doc → **File → Share → Publish to web → Document → Publish**, then copy
+the link. Only `docs.google.com` published links are accepted. If the doc can't
+be fetched the assistant uses the last good copy, or says the resume is
+unavailable; it never guesses. Set the variable in Vercel too.
+
 ### Sessions & rate limiting
 
 Both use the same Upstash Redis credentials as the cache and fall back to
@@ -122,17 +135,40 @@ Redis keys: `sess:<id>:turns` (last 12 messages, sliding TTL), `sess:<id>:lock`
 
 ## Updating content
 
-- **Portfolio content** (name, skills, projects, experience, education,
-  certifications, contact): edit `public/js/data.js` only — the page renders
-  from it, and the chat assistant reads the same data (education is used by the
-  assistant but not rendered on the page).
+- **Website content** (name, skills, projects, experience, certifications,
+  contact): edit `public/js/data.js` only — the page renders from it.
 - **Project cards** are rendered from `public/data/projects.json` when present
   (kept up to date by the n8n automation in [`automation/`](automation/)), and
   fall back to `public/js/data.js` if that file is missing or invalid.
-- **Chat knowledge** (extra bio / FAQ the assistant can use):
-  edit `knowledge.md`. In development the prompt is rebuilt each request; in
-  production it is cached (a redeploy picks up changes). Because the system
-  prompt is part of the cache key, editing it also invalidates cached replies.
+- **What the chat assistant knows** is separate from the website:
+  - **Resume** — edit your Google Doc; the assistant picks it up within an hour
+    (`RESUME_CACHE_SECONDS`), no redeploy. It is the source of truth for current
+    role, experience, skills and certifications. Phone numbers in the doc are
+    redacted before the model sees it.
+  - **`kb/kb.json`** — everything not in the resume: profile basics, education,
+    certification details and verify links, quick facts, project details, and the
+    LinkedIn snapshot. Each entry has an `id`, `source` and `updated` date.
+  - The system prompt includes both, so it is part of the cache key: editing
+    either one invalidates cached replies automatically.
+
+### Keeping the knowledge base current
+
+| What changed | What to do | Effort |
+| --- | --- | --- |
+| Resume (role, skills, certs) | Edit the Google Doc. | Live, nothing else |
+| New certification / job / skill on LinkedIn | Download LinkedIn's **Basic** data export, extract it, run `npm run kb:linkedin -- "<folder>"`, review `git diff kb/kb.json`, commit. | About 2 min |
+| New or changed GitHub repo | `npm run kb:sync` (add `-- --dry` to preview). | 1 command |
+| "Is anything out of date?" | `npm run kb:check` — flags a LinkedIn snapshot older than 90 days and any difference between the live resume and the KB's certifications. | 1 command |
+
+LinkedIn cannot be read automatically (its API exposes only name/headline to an
+app like this, and scraping is against its terms), so the export is the
+supported path. The importer opens only `Profile`, `Positions`, `Education`,
+`Skills` and `Certifications` and only named columns; connections, messages,
+phone numbers, e-mail, birth date, address and zip code are never read. Choices
+that must survive re-imports (certifications to leave out, exam codes, company
+display names) live in `scripts/linkedin.config.json`; hand-set `verifyUrl` and
+`code` values in `kb.json` are kept. Re-importing an unchanged export changes
+nothing.
 
 ---
 
@@ -142,13 +178,25 @@ Redis keys: `sess:<id>:turns` (last 12 messages, sliding TTL), `sess:<id>:lock`
 server.js              Express app: static hosting + POST /api/chat
 lib/
   llm.js               Provider abstraction (Groq/Mistral/Gemini) + timeouts
-  knowledge.js         Builds the system prompt from data.js + knowledge.md
+  knowledge.js         Builds the system prompt from kb.json + the live resume
+  kb.js                Loads/validates kb/kb.json and renders it as prompt text
+  kb-build.js          README cleaning + repo-link helpers for the KB sync
+  kb-check.js          Drift check: KB vs live resume, snapshot staleness
+  linkedin-import.js   LinkedIn export -> kb.json (allow-listed files/columns only)
+  csv.js               Dependency-free CSV parser
+  text.js              Shared text cleaning + phone redaction
+  sources/resume.js    Live resume: published Google Doc -> text (cached, safe)
   guards.js            sanitize / injection detection / in-memory limiter (fallback)
   cache.js             Response cache (in-memory LRU + optional Upstash Redis)
   redis.js             Shared Upstash Redis client (null when unconfigured)
   session.js           Server-owned chat sessions (cookie id, Redis memory, lock)
   ratelimit.js         Redis rate limits with hashed IPs + in-memory fallback
-knowledge.md           Editable extra knowledge base
+kb/kb.json             Assistant knowledge base (profile, education, facts, projects)
+scripts/
+  sync-kb-projects.js  `npm run kb:sync` — refresh kb.json projects from GitHub
+  import-linkedin.js   `npm run kb:linkedin` — import a LinkedIn export
+  linkedin.config.json Import decisions that survive re-imports
+  check-kb.js          `npm run kb:check` — staleness / drift report
 public/
   index.html
   css/{style,chat}.css

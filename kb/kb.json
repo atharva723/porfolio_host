@@ -1,0 +1,300 @@
+{
+  "version": 1,
+  "updated": "2026-10-31",
+  "profile": {
+    "id": "profile",
+    "source": "owner",
+    "updated": "2026-10-30",
+    "name": "Atharva Jadhav",
+    "headline": "AI & Agentic Automation Engineer",
+    "employer": "LTIMindtree",
+    "location": "Mumbai, India",
+    "email": "atharvajadhav968@gmail.com",
+    "github": "https://github.com/atharva723",
+    "linkedin": "https://www.linkedin.com/in/atharva-jadhav-b122102b3/",
+    "website": "https://atharva-host.vercel.app/"
+  },
+  "education": [
+    {
+      "id": "edu-be",
+      "source": "owner",
+      "updated": "2026-10-30",
+      "degree": "Bachelor of Engineering (B.E.) in Computer Engineering",
+      "institution": "M.G.M. College of Engineering, Kamothe",
+      "affiliation": "University of Mumbai",
+      "graduated": "2025",
+      "period": "2021–2025",
+      "score": "7.11 CGPA overall, 8.21 CGPA in the final semester"
+    },
+    {
+      "id": "edu-hsc",
+      "source": "owner",
+      "updated": "2026-10-30",
+      "degree": "Higher Secondary Certificate (HSC, 12th)",
+      "institution": "P.E. Society's High School & Jr. College (English Medium)",
+      "score": "77% in the HSC board exams"
+    }
+  ],
+  "credentials": [
+    {
+      "id": "cred-az-900",
+      "source": "microsoft-learn",
+      "updated": "2026-10-30",
+      "code": "AZ-900",
+      "title": "Microsoft Certified: Azure Fundamentals",
+      "issuer": "Microsoft",
+      "earned": "Aug 2026",
+      "credentialId": "4643C462FF5233C9",
+      "verifyUrl": "https://learn.microsoft.com/api/credentials/share/en-us/AtharvaJadhavInternationalSupplier-4962/4643C462FF5233C9?sharingId=454FAFEA6CCB7145"
+    },
+    {
+      "id": "cred-ai-901",
+      "source": "linkedin-export",
+      "updated": "2026-10-31",
+      "code": "AI-901",
+      "title": "Microsoft Certified: Azure AI Fundamentals",
+      "issuer": "Microsoft",
+      "earned": "Oct 2026",
+      "credentialId": "493ADEA057BE4512",
+      "verifyUrl": "https://learn.microsoft.com/api/credentials/share/en-us/AtharvaJadhavInternationalSupplier-4962/493ADEA057BE4512"
+    },
+    {
+      "id": "cred-ai-103",
+      "source": "linkedin-export",
+      "updated": "2026-10-31",
+      "code": "AI-103",
+      "title": "Microsoft Certified: Azure AI Apps and Agents Developer Associate",
+      "issuer": "Microsoft",
+      "earned": "Oct 2026",
+      "expires": "Oct 2027",
+      "credentialId": "AF8AB224DC76D2B2",
+      "verifyUrl": "https://learn.microsoft.com/api/credentials/share/en-us/AtharvaJadhavInternationalSupplier-4962/AF8AB224DC76D2B2"
+    },
+    {
+      "id": "cred-ccao-f",
+      "source": "linkedin-export",
+      "updated": "2026-10-31",
+      "code": "CCAO-F",
+      "title": "Claude Certified Associate - Foundations",
+      "issuer": "Anthropic",
+      "earned": "Oct 2026",
+      "expires": "Oct 2027",
+      "verifyUrl": "https://www.credly.com/badges/1947fb57-1d84-44d1-9db0-91e2c68c568a/linked_in_profile"
+    }
+  ],
+  "facts": [
+    {
+      "id": "fact-employment-timeline",
+      "source": "owner",
+      "updated": "2026-10-31",
+      "text": "Atharva joined LTIMindtree full-time in January 2026. His work as an AI engineer on the Microsoft project (Agentic Factory Operations) began in April 2026."
+    },
+    {
+      "id": "fact-contact",
+      "source": "owner",
+      "updated": "2026-10-30",
+      "text": "Best ways to reach Atharva: email (atharvajadhav968@gmail.com) or LinkedIn."
+    },
+    {
+      "id": "fact-availability",
+      "source": "owner",
+      "updated": "2026-10-30",
+      "text": "Availability and notice period are not listed; ask Atharva directly."
+    },
+    {
+      "id": "fact-relocation",
+      "source": "owner",
+      "updated": "2026-10-30",
+      "text": "Relocation and remote-work preferences are open to discussion; reach out via email or LinkedIn."
+    },
+    {
+      "id": "fact-salary",
+      "source": "owner",
+      "updated": "2026-10-30",
+      "text": "Salary expectations are not listed; they are best discussed directly."
+    },
+    {
+      "id": "fact-phone",
+      "source": "owner",
+      "updated": "2026-10-30",
+      "text": "Atharva's phone number is never shared by this assistant; point people to email or LinkedIn instead."
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-ltm-final-capstone",
+      "repo": "LTM_final_capstone",
+      "title": "LTM Final Capstone",
+      "description": "An industrial AI assistant for plant operators, maintenance engineers, and shift supervisors. The project includes a Manufacturing Plant Monitoring & Diagnostics Assistant built with Mistral + LangChain + FAISS RAG. It features 8 tabs in the Streamlit UI, providing sensors, log data, fault diagnosis, parts catalog lookup, PM schedule, knowledge base query, log analysis, safety checks, OEE production KPIs, and system health checks.",
+      "tech": [
+        "Python"
+      ],
+      "link": "https://github.com/atharva723/LTM_final_capstone",
+      "source": "github",
+      "updated": "2026-10-30",
+      "highlights": "Manufacturing Plant Monitoring & Diagnostics Assistant MAIA — Manufacturing AI Assistant An industrial AI assistant for plant operators, maintenance engineers, and shift supervisors. Built with Mistral + LangChain + FAISS RAG. Quick Start Project Structure API Endpoints ( Method Endpoint Description POST /api/v1/chat Main chat — full agent pipeline GET /api/v1/sensors All machine sensor readings GET /api/v1/sensors/{machine id} Single machine sensors POST /api/v1/fault Fault diagnosis GET /api/v1/parts Spare parts lookup POST /api/v1/maintenance PM schedule POST /api/v1/rag Knowledge base…"
+    },
+    {
+      "id": "proj-weather-dashboard-microservices-architecture",
+      "repo": "Weather_Dashboard_Microservices-Architecture",
+      "title": "Weather Dashboard Microservices Architecture",
+      "description": "A modern, full-stack weather application built with Flask microservices, featuring JWT authentication, real-time weather data, and a beautiful animated UI. The application consists of three independent services: an API Gateway, an Authentication Service, and a Weather Service.",
+      "tech": [
+        "CSS",
+        "HTML",
+        "Python",
+        "JavaScript"
+      ],
+      "link": "https://github.com/atharva723/Weather_Dashboard_Microservices-Architecture",
+      "source": "github",
+      "updated": "2026-10-30",
+      "highlights": "🌤️ Weather Dashboard - Microservices Architecture A modern, full-stack weather application built with Flask microservices , featuring JWT authentication, real-time weather data, and a beautiful animated UI. 📸 Screenshots Landing Page Weather Dashboard Demo 🏗️ Architecture Overview This project implements a microservices architecture with three independent services: ✨ Features 🔐 Authentication Service - User registration and login - JWT token generation and validation - Secure password hashing (bcrypt) - Token blacklist for logout - Session management 🌍 Weather Service - Real-time weather…"
+    },
+    {
+      "id": "proj-codeauditor-copilot-cli-agnet",
+      "repo": "CodeAuditor_copilot_CLI_agent",
+      "title": "Code Auditor Copilot CLI Agnet",
+      "description": "This project provides a custom agent for CodeAudit to scan for security and production readiness issues in code repositories. It uses GitHub Copilot's capabilities to review code and identify areas for improvement, while also providing detailed reports on the findings.",
+      "tech": [
+        "Python",
+        "Go",
+        "Dockerfile"
+      ],
+      "link": "https://github.com/atharva723/CodeAuditor_copilot_CLI_agent",
+      "source": "github",
+      "updated": "2026-10-30",
+      "highlights": "CodeAudit Code reviewers you talk to in plain English. Open GitHub Copilot (CLI or VS Code), type \"review my code and find vulnerabilities\" for a security/readiness audit, or \"how can this code be improved?\" for a senior-engineer design review — then CodeAudit writes the right report for you. It works on any language or framework (Python, JavaScript, Go, Java, Ruby, …) and never changes your code — it only reads it and writes report files under evaluation/ . What it checks Area What it looks for 🔑 Secrets Hardcoded API keys, passwords, tokens, database URLs left in the code. 🛡️ Security &…"
+    },
+    {
+      "id": "proj-clothing-store-full-stack-using-node",
+      "repo": "Clothing_store_full_stack_using_node",
+      "title": "Clothing Store Full Stack Using Node",
+      "description": "This is a full-stack clothing e-commerce application built using HTML, CSS, JavaScript, Node.js, Express, and SQLite during the development phase. The focus of this project is real-world application development, not just UI — including backend APIs, database design, cart logic, orders, and debugging real issues that arise when frontend and backend interact.",
+      "tech": [
+        "CSS",
+        "JavaScript",
+        "HTML"
+      ],
+      "link": "https://github.com/atharva723/Clothing_store_full_stack_using_node",
+      "source": "github",
+      "updated": "2026-10-30",
+      "highlights": "🛍️ Clothing Store – Full-Stack Development Project This project is a full-stack clothing e-commerce application built using HTML, CSS, JavaScript, Node.js, Express, and SQLite during the development phase. The focus of this project is real-world application development , not just UI — including backend APIs, database design, cart logic, orders, and debugging real issues that arise when frontend and backend interact. 🚀 Project Overview The application simulates a real clothing brand website where users can: Browse products Select product sizes Add items to a cart View cart contents Checkout…"
+    },
+    {
+      "id": "proj-n8n-and-backend-llm-db-maps-agent",
+      "repo": "n8n_and_backend-LLM-DB-_Maps-agent",
+      "title": "N8n And Backend LLM DB Maps Agent",
+      "description": "The project consists of two main components: the Python backend and the n8n workflow editor. The Python backend is responsible for classifying Google Maps reviews with a local LLM (Ollama) and returning a structured output containing sentiment and suggested replies. The n8n workflow editor allows users to create workflows that integrate with the Python backend, enabling businesses to automate tasks such as data analysis and reporting.",
+      "tech": [
+        "Python",
+        "JavaScript",
+        "Mako"
+      ],
+      "link": "https://github.com/atharva723/n8n_and_backend-LLM-DB-_Maps-agent",
+      "source": "github",
+      "updated": "2026-10-30"
+    },
+    {
+      "id": "proj-azure-apphost-ci-cd-pipeline",
+      "repo": "Azure_AppHost_CI_CD_Pipeline",
+      "title": "Azure App Host CI CD Pipeline",
+      "description": "This project involves hosting a web application using Azure DevOps and implementing Continuous Integration/Continuous Deployment (CI/CD) pipelines. The primary language used is CSS, along with HTML and JavaScript. This project is part of a portfolio.",
+      "tech": [
+        "CSS",
+        "HTML",
+        "JavaScript"
+      ],
+      "link": "https://github.com/atharva723/Azure_AppHost_CI_CD_Pipeline",
+      "source": "github",
+      "updated": "2026-10-30"
+    },
+    {
+      "id": "proj-multi-channel-support-system",
+      "repo": "multi-channel_support_system",
+      "title": "Multi Channel Support System",
+      "description": "A real-time, multi-tenant support-triage platform that ingests support requests from Discord and Gmail, classifies criticality with a local LLM, computes dynamic SLA urgency, escalates critical tickets to a human-in-the-loop Expo mobile dashboard, and sends approved (or AI-auto) replies back through the original channel. The system is grounded in each tenant's own knowledge base and out-of-scope questions defer to a human.",
+      "tech": [
+        "Python",
+        "TypeScript",
+        "Shell",
+        "JavaScript",
+        "PowerShell"
+      ],
+      "link": "https://github.com/atharva723/multi-channel_support_system",
+      "source": "projects.json",
+      "updated": "2026-10-30"
+    },
+    {
+      "id": "proj-movie-insight-using-react-flask",
+      "repo": "movie_insight_using_react_flask",
+      "title": "Movie Insight Using React Flask",
+      "description": "This project is a portfolio demonstrating the application of React, Flask, and TypeScript to build a movie insight system. The application uses caching with LRU cache to optimize performance and provides an interface for users to view movies and their insights.",
+      "tech": [
+        "TypeScript",
+        "Python",
+        "CSS",
+        "JavaScript",
+        "Dockerfile",
+        "HTML"
+      ],
+      "link": "https://github.com/atharva723/movie_insight_using_react_flask",
+      "source": "github",
+      "updated": "2026-10-30",
+      "highlights": "🎬 CinePlex AI-Powered Movie Discovery Platform with Semantic Recommendations Movie Insight is a modern web application that transforms movie discovery through artificial intelligence. Instead of traditional genre-based filtering, it uses Natural Language Processing to understand movie narratives and recommend films with similar stories, themes, and emotional tones. 🌟 Key Features Intelligent Search Search any movie from TMDB's extensive database with real-time results and rich metadata. AI-Driven Recommendations Advanced sentence embeddings analyze movie plots to suggest semantically…"
+    }
+  ],
+  "linkedin": {
+    "id": "linkedin",
+    "source": "linkedin-export",
+    "updated": "2026-10-31",
+    "asOf": "2026-10-31",
+    "url": "https://www.linkedin.com/in/atharva-jadhav-b122102b3/",
+    "headline": "Cloud & AI Engineer | Agentic AI & LLM Applications | Microsoft Copilot Studio & Power Platform | Azure | DevOps & Cloud Automation",
+    "location": "Navi Mumbai, Maharashtra, India",
+    "industry": "Artificial Intelligence",
+    "positions": [
+      {
+        "company": "LTIMindtree",
+        "title": "Engineer - Cloud & Infra",
+        "description": "Completed structured training in Azure Cloud, DevOps and AI/ML, with a focus on Python, Large Language Models (LLMs) and Agentic AI development. Currently working on enterprise AI solutions for a Microsoft project, developing Copilot Studio agents integrated with Power Automate and Microsoft 365 services. Building intelligent automation workflows and specialized enterprise agents for documentation generation, infrastructure automation and architecture design. Gained hands-on experience in designing AI-driven workflows, integrating enterprise systems, and developing agent-based solutions. Strengthened professional skills in cross-functional collaboration, agile teamwork and technical communication.",
+        "location": "India",
+        "started": "Jan 2026",
+        "finished": null
+      }
+    ],
+    "education": [
+      {
+        "school": "Mgm College Of Engineering & Technology",
+        "degree": "Bachelor of Engineering",
+        "started": "2021",
+        "ended": "2025"
+      }
+    ],
+    "skills": [
+      "Claude Code",
+      "GitHub Copilot",
+      "Large Language Models (LLM)",
+      "Microsoft Power Automate",
+      "Multi-agent Systems",
+      "Retrieval-Augmented Generation (RAG)",
+      "Microsoft Copilot Studio",
+      "Agentic AI Development",
+      "azure",
+      "Cloud Computing",
+      "DevOps",
+      "Azure DevOps Services",
+      "Infrastructure as code (IaC)",
+      "Terraform",
+      "Microsoft Azure",
+      "Networking",
+      "Powershell",
+      "Cascading Style Sheets (CSS)",
+      "HTML",
+      "SQL",
+      "Machine Learning",
+      "Artificial Intelligence (AI)",
+      "Python (Programming Language)",
+      "Regression Analysis"
+    ]
+  }
+}

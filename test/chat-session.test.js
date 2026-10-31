@@ -4,6 +4,7 @@ const assert = require("node:assert");
 // Force the in-memory fallbacks regardless of any local .env.
 process.env.UPSTASH_REDIS_REST_URL = "";
 process.env.UPSTASH_REDIS_REST_TOKEN = "";
+process.env.RESUME_DOC_URL = "";
 
 // Capture what the (stubbed) LLM receives so we can assert on server-owned history.
 const llm = require("../lib/llm");

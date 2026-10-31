@@ -1,0 +1,13 @@
+{
+  "_comment": "Decisions that survive every re-import of the LinkedIn export. Edit this file, not kb.json, for things the export gets wrong or that you want left out.",
+  "excludeCredentials": ["Tata Group - Data Visualisation"],
+  "credentialCodes": {
+    "Microsoft Certified: Azure Fundamentals": "AZ-900",
+    "Microsoft Certified: Azure AI Fundamentals": "AI-901",
+    "Microsoft Certified: Azure AI Apps and Agents Developer Associate": "AI-103",
+    "Claude Certified Associate - Foundations": "CCAO-F"
+  },
+  "companyNames": {
+    "LTM": "LTIMindtree"
+  }
+}

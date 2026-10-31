@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "kb:sync": "node scripts/sync-kb-projects.js",
+    "kb:linkedin": "node scripts/import-linkedin.js",
+    "kb:check": "node scripts/check-kb.js"
   },
   "author": "Atharva",
   "license": "ISC",

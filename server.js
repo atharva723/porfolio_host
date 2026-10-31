@@ -16,6 +16,7 @@ const { sanitize, looksLikeInjection } = require("./lib/guards");
 const cache = require("./lib/cache");
 const session = require("./lib/session");
 const rateLimit = require("./lib/ratelimit");
+const resumeSource = require("./lib/sources/resume");
 const CONFIG = require("./public/js/config.js");
 
 const app = express();
@@ -156,12 +157,11 @@ app.post("/api/chat", async (req, res) => {
     const history = await session.load(sessionId);
     const conversation = [...history, { role: "user", content: cleanMessage }];
 
-    // Reuse a previously generated answer when the exact same request (system
-    // prompt + guard + full conversation + model/params) has been seen before.
-    // The key hashes all of those, so a cached reply is only ever served when
-    // it is still 100% valid; editing the knowledge base changes the system
-    // prompt and therefore the key, transparently invalidating stale answers.
-    const systemPrompt = buildSystemPrompt();
+    // The live resume is part of the system prompt, so it is also part of the
+    // cache key: editing the Google Doc (or kb.json) changes the key and
+    // transparently invalidates cached answers that used the old text.
+    const resume = await resumeSource.get();
+    const systemPrompt = buildSystemPrompt({ resume });
     const guard = buildGuardReminder();
     const cacheKey = cache.makeKey([
       "chat-v1",

@@ -168,6 +168,64 @@ test("rate limits are shared counters in Redis, keyed by hashed IP, with a windo
   assert.ok(runCommand(["TTL", keys[0]]) > 0, "counter always expires");
 });
 
+const resumeUrl = "https://docs.google.com/document/d/e/2PACX-1vRNiKCkjGj44iqXm2eOY50dA71KSGFpK6hUVaaY1MqPU3v1faUv7x35oeZyVwxwG7cX-k8QkHJvWZ67/pub";
+const resumeHtml = `<div id="contents"><p>Atharva Jadhav</p><p>${"Engineer working on agentic automation. ".repeat(10)}</p></div>`;
+const htmlOk = () => new Response(resumeHtml, { status: 200, headers: { "content-type": "text/html" } });
+
+test("resume: a fetched copy is shared through Redis (fresh + last-good keys with TTLs)", async () => {
+  const resume = require("../lib/sources/resume");
+  process.env.RESUME_DOC_URL = resumeUrl;
+  resume._reset();
+  let calls = 0;
+  resume._setFetch(async () => {
+    calls++;
+    return htmlOk();
+  });
+
+  const first = await resume.get();
+  assert.equal(first.available, true);
+  assert.equal(calls, 1);
+  const freshTtl = runCommand(["TTL", "kb:resume"]);
+  assert.ok(freshTtl > 0 && freshTtl <= 3600, `fresh copy expires (${freshTtl}s)`);
+  assert.ok(runCommand(["TTL", "kb:resume:last"]) > 3600, "last-good copy outlives the fresh window");
+
+  // A different serverless instance (empty memory) reads Redis instead of Google.
+  resume._reset();
+  resume._setFetch(async () => assert.fail("must not hit Google when Redis has a fresh copy"));
+  const second = await resume.get();
+  assert.equal(second.available, true);
+  assert.equal(second.stale, false);
+  assert.equal(second.text, first.text);
+  delete process.env.RESUME_DOC_URL;
+  resume._reset();
+});
+
+test("resume: when Google fails and the fresh key has expired, Redis last-good is served as stale", async () => {
+  const resume = require("../lib/sources/resume");
+  const warn = console.warn;
+  console.warn = () => {};
+  try {
+    process.env.RESUME_DOC_URL = resumeUrl;
+    resume._reset();
+    resume._setFetch(async () => htmlOk());
+    const good = await resume.get();
+
+    store.delete("kb:resume"); // fresh window over
+    resume._reset(); // new instance, empty memory
+    resume._setFetch(async () => {
+      throw new Error("google down");
+    });
+    const r = await resume.get();
+    assert.equal(r.available, true);
+    assert.equal(r.stale, true);
+    assert.equal(r.text, good.text);
+  } finally {
+    console.warn = warn;
+    delete process.env.RESUME_DOC_URL;
+    resume._reset();
+  }
+});
+
 test("a Redis outage degrades to in-memory instead of failing", async () => {
   failing = true;
   const originalWarn = console.warn;
