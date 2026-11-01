@@ -107,7 +107,8 @@ input guard ─ off-topic ─► friendly redirect      (nothing is answered or 
 planner   a small model picks which lookup tools the message needs, as JSON
    ▼
 tools     read-only code over the KB + live resume (certifications, education,
-          projects, skills, experience, contact, LinkedIn snapshot, resume, site links)
+          projects, skills, experience, contact, LinkedIn snapshot, resume,
+          resume download link, site links)
    ▼
 answer model   sees ONLY the lookup results and cannot call tools itself
    ▼
@@ -180,6 +181,26 @@ Google Doc → **File → Share → Publish to web → Document → Publish**, t
 the link. Only `docs.google.com` published links are accepted. If the doc can't
 be fetched the assistant uses the last good copy, or says the resume is
 unavailable; it never guesses. Set the variable in Vercel too.
+
+### Resume download
+
+| Variable             | Required | Description                                                                 |
+| -------------------- | -------- | --------------------------------------------------------------------------- |
+| `RESUME_PDF_DOC_URL` | no       | The resume Google Doc's normal share link (`.../document/d/<id>/edit`). Enables the download. |
+
+The "Publish to web" link above can't be exported, so the download needs the
+document's normal link, and the doc must be shared as **Anyone with the link →
+Viewer**. Visitors (and the assistant) only ever see `https://<your-site>/resume.pdf`;
+that route redirects to Google's PDF export of the doc, so it is always the
+latest version. The target is rebuilt from the validated document id, never from
+the request, so it can't be used as an open redirect; the route is rate limited
+(20/minute per IP). Without the variable, the assistant says the download isn't
+set up and offers no link.
+
+> **Privacy:** the PDF is the document itself, so it contains whatever is in the
+> doc, including your phone number (the chat redacts it from the text the model
+> sees, but not from the PDF). If you don't want it public, point
+> `RESUME_PDF_DOC_URL` at a copy of the resume without it.
 
 ### Sessions & rate limiting
 
@@ -260,6 +281,7 @@ lib/
   csv.js               Dependency-free CSV parser
   text.js              Shared text cleaning + phone redaction
   sources/resume.js    Live resume: published Google Doc -> text (cached, safe)
+  sources/resume-download.js  Validates the doc link and builds the /resume.pdf redirect target
   sources/resume-sections.js  Splits the resume text into sections for the tools
   guards.js            sanitize / blatant-injection pre-filter / in-memory limiter (fallback)
   cache.js             Response cache (in-memory LRU + optional Upstash Redis)

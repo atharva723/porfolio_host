@@ -14,6 +14,10 @@
   { "message": "Show me his projects", "include": ["get_projects"] },
   { "message": "Where can I see his projects on the website?", "include": ["get_site_links"] },
   { "message": "What does his LinkedIn say?", "include": ["get_linkedin_profile"] },
+  { "message": "Can I download his resume?", "include": ["get_resume_download"] },
+  { "message": "Send me his CV as a PDF please", "include": ["get_resume_download"] },
+  { "message": "Can I get a copy of his resume to print?", "include": ["get_resume_download"] },
+  { "message": "Summarise his resume for me", "anyOf": ["get_resume", "get_experience"] },
   { "message": "Hi!", "empty": true },
   { "message": "What can you do?", "empty": true },
   { "message": "thanks, that was helpful", "lastAssistant": "He holds four certifications.", "empty": true }

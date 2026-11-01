@@ -16,6 +16,7 @@ const { sanitize, looksLikeInjection } = require("./lib/guards");
 const session = require("./lib/session");
 const rateLimit = require("./lib/ratelimit");
 const agent = require("./lib/agent");
+const resumeDownload = require("./lib/sources/resume-download");
 const CONFIG = require("./public/js/config.js");
 
 const app = express();
@@ -74,6 +75,30 @@ function tooManyRequests(res, limit) {
     .status(429)
     .json({ error: "You're sending messages too quickly. Please wait a moment and try again." });
 }
+
+// ---- Resume download ----
+// A stable link on this site that sends the visitor to the PDF export of the resume
+// Google Doc. The target is rebuilt from a validated document id in the environment and
+// never from the request, so it cannot be used as an open redirect.
+const RESUME_LIMITS = [{ bucket: "resume", windowMs: CONFIG.ONE_MINUTE_MS, max: 20 }];
+
+app.get(resumeDownload.ROUTE, async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    const limit = await rateLimit.check(clientIp(req), RESUME_LIMITS);
+    if (limit.limited) {
+      res.set("Retry-After", String(limit.retryAfterSeconds));
+      return res.status(429).type("text/plain").send("Too many requests. Please try again in a moment.");
+    }
+    const target = resumeDownload.exportUrl();
+    console.info(JSON.stringify({ evt: "resume_download", available: !!target }));
+    if (!target) return res.status(404).type("text/plain").send("The resume download is not available right now.");
+    return res.redirect(302, target);
+  } catch (err) {
+    console.error("[/resume.pdf]", err.message);
+    return res.status(500).type("text/plain").send("Could not start the download. Please try again.");
+  }
+});
 
 // Restore the visitor's transcript (e.g. after a page reload). The session id
 // comes from an HttpOnly cookie; no id means no history.

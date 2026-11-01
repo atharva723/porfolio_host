@@ -5,6 +5,7 @@ const path = require("node:path");
 
 const tools = require("../lib/tools");
 const kbLib = require("../lib/kb");
+process.env.RESUME_PDF_DOC_URL = ""; // chips and links must not depend on a developer's local .env
 
 const RESUME_TEXT = `Atharva Jadhav
 AI & Agentic Automation Engineer
@@ -37,11 +38,11 @@ FastAPI • Ollama • Docker • Terraform`;
 
 const kb = () => JSON.parse(JSON.stringify(kbLib.load()));
 const LIVE = { available: true, text: RESUME_TEXT, fetchedAt: "2026-10-31T00:00:00.000Z" };
-const ctx = (over = {}) => ({ kb: kb(), getResume: async () => LIVE, now: () => new Date("2026-11-01T00:00:00Z"), ...over });
+const ctx = (over = {}) => ({ kb: kb(), getResume: async () => LIVE, resumeDownload: () => ({ url: null }), now: () => new Date("2026-11-01T00:00:00Z"), ...over });
 const run = (name, args = {}, c = ctx()) => tools.get(name).run(tools.get(name).parameters && args, c);
 
 /* ---- registry ---- */
-test("the registry exposes exactly the nine read-only tools, each fully described", () => {
+test("the registry exposes exactly the ten read-only tools, each fully described", () => {
   assert.deepEqual(tools.names().sort(), [
     "get_certifications",
     "get_contact_info",
@@ -50,6 +51,7 @@ test("the registry exposes exactly the nine read-only tools, each fully describe
     "get_linkedin_profile",
     "get_projects",
     "get_resume",
+    "get_resume_download",
     "get_site_links",
     "get_skills",
   ]);
