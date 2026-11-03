@@ -5,36 +5,8 @@ const path = require("node:path");
 
 const tools = require("../lib/tools");
 const kbLib = require("../lib/kb");
+const { RESUME_TEXT } = require("./helpers/fixtures");
 process.env.RESUME_PDF_DOC_URL = ""; // chips and links must not depend on a developer's local .env
-
-const RESUME_TEXT = `Atharva Jadhav
-AI & Agentic Automation Engineer
-
-## PROFESSIONAL SUMMARY
-Engineer at LTIMindtree working on enterprise Agentic AI for a Microsoft project.
-
-## EXPERIENCE
-Engineer, Cloud & Infra Management Apr 2026 – Present
-LTIMindtree | Microsoft Project: Agentic Factory Operations
-- Developed Copilot Studio agents
-
-## PROJECTS
-Omnichannel AI Support Sentinel (https://github.com/atharva723/multi-channel_support_system)
-Built a multi-tenant support-triage platform using tenant-specific RAG.
-
-## EDUCATION
-Computer Engineering University of Mumbai
-
-## TECHNICAL SKILLS
-Python
-Agentic AI
-Copilot Studio
-
-## CERTIFICATIONS
-- Microsoft Certified: Azure Fundamentals (Exam AZ-900)
-
-## ADDITIONAL TECHNICAL STACK
-FastAPI • Ollama • Docker • Terraform`;
 
 const kb = () => JSON.parse(JSON.stringify(kbLib.load()));
 const LIVE = { available: true, text: RESUME_TEXT, fetchedAt: "2026-10-31T00:00:00.000Z" };

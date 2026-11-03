@@ -12,11 +12,12 @@ if (process.env.NODE_ENV !== "production") {
 
 const { REFUSAL } = require("./lib/knowledge");
 const { LLMError } = require("./lib/llm");
-const { sanitize, looksLikeInjection } = require("./lib/guards");
+const { sanitize, looksLikeInjection, createRateLimiter } = require("./lib/guards");
 const session = require("./lib/session");
 const rateLimit = require("./lib/ratelimit");
 const agent = require("./lib/agent");
 const resumeDownload = require("./lib/sources/resume-download");
+const health = require("./lib/health");
 const CONFIG = require("./public/js/config.js");
 
 const app = express();
@@ -75,6 +76,28 @@ function tooManyRequests(res, limit) {
     .status(429)
     .json({ error: "You're sending messages too quickly. Please wait a moment and try again." });
 }
+
+// ---- Health ----
+// For uptime monitors: 200 when the assistant can answer, 503 when it cannot (missing LLM key
+// or invalid knowledge base). Booleans only, no secrets, and NO network calls: the limiter is
+// in-memory on purpose, so a monitor never depends on (or adds load to) Redis.
+const healthLimited = createRateLimiter();
+const HEALTH_LIMIT = { windowMs: CONFIG.ONE_MINUTE_MS, max: 60 };
+
+app.get("/api/health", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    if (healthLimited(clientIp(req), HEALTH_LIMIT, "health")) {
+      res.set("Retry-After", "60");
+      return res.status(429).json({ error: "Too many requests." });
+    }
+    const snap = health.snapshot();
+    return res.status(snap.ready ? 200 : 503).json({ status: snap.ready ? "ok" : "unavailable", ...snap });
+  } catch (err) {
+    console.error(JSON.stringify({ evt: "health_error", name: err.name }));
+    return res.status(500).json({ status: "error" });
+  }
+});
 
 // ---- Resume download ----
 // A stable link on this site that sends the visitor to the PDF export of the resume
@@ -194,6 +217,10 @@ app.post("/api/chat", async (req, res) => {
         tools: (out.trace.tools || []).map((t) => t.name),
         regenerated: out.trace.regenerated,
         ms: Date.now() - started,
+        // Latency per stage and model usage for the turn: numbers only, never message text.
+        stages: out.trace.ms,
+        calls: out.trace.usage && out.trace.usage.calls,
+        tokens: out.trace.usage && { in: out.trace.usage.prompt, out: out.trace.usage.completion },
       })
     );
 
@@ -208,7 +235,19 @@ app.post("/api/chat", async (req, res) => {
     return respond(200, { reply: out.reply, cached: out.cached, kind: out.kind, sources: out.sources, suggestions: out.suggestions });
   } catch (err) {
     const status = err instanceof LLMError ? err.status : 500;
-    console.error("[/api/chat]", err.message);
+    // Structured, content-free error line (status + error class + a short message that comes
+    // from our own code or the provider's error text, never from the visitor's message).
+    console.error(
+      JSON.stringify({
+        evt: "chat_error",
+        status,
+        name: err.name,
+        message: String(err.message).slice(0, 160),
+        // Tokens spent before the failure (counts only), so failed turns can be costed too.
+        calls: err.usage && err.usage.calls,
+        tokens: err.usage && { in: err.usage.prompt, out: err.usage.completion },
+      })
+    );
     // Pass through our own safe LLMError messages (config/rate-limit); hide
     // raw upstream/internal details behind a generic message.
     const clientMessage =
@@ -217,6 +256,22 @@ app.post("/api/chat", async (req, res) => {
         : "Sorry, the assistant is unavailable right now. Please try again later.";
     return respond(status, { error: clientMessage });
   }
+});
+
+// JSON error handler: body-parser failures (invalid JSON, oversized body) and anything else
+// that escapes a route end here. It never exposes a stack trace, parser internals or paths
+// (Express's default handler prints them outside production).
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  const status = Number(err && err.status) >= 400 && Number(err.status) < 500 ? Number(err.status) : 500;
+  console.error(JSON.stringify({ evt: "request_error", status, name: err && err.name }));
+  const error =
+    status === 413
+      ? "That request is too large."
+      : status < 500
+        ? "That request couldn't be read. Please try again."
+        : "Something went wrong. Please try again.";
+  return res.status(status).json({ error });
 });
 
 // Azure assigns a PORT dynamically

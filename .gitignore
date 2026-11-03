@@ -30,3 +30,6 @@ automation/.preview.log
 automation/.github_pat
 public/data/projects.json.bak
 public/data/projects.json.bak.absent
+
+# Live evaluation report (generated)
+eval-report.json

@@ -9,6 +9,7 @@
     "kb:sync": "node scripts/sync-kb-projects.js",
     "kb:linkedin": "node scripts/import-linkedin.js",
     "kb:check": "node scripts/check-kb.js",
+    "check:env": "node scripts/check-env.js",
     "eval:live": "node scripts/eval-live.js"
   },
   "author": "Atharva",

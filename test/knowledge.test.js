@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert");
 
-const { buildSystemPrompt, buildAnswerPrompt, buildGuardReminder, buildEvidence, neutralize, REFUSAL, REGENERATE_FEEDBACK } = require("../lib/knowledge");
+const { buildSystemPrompt, buildAnswerPrompt, buildGuardReminder, buildEvidence, profileCard, neutralize, REFUSAL, REGENERATE_FEEDBACK } = require("../lib/knowledge");
 const messages = require("../lib/messages");
 
 const RESUME = {
@@ -126,6 +126,13 @@ test("lookup prompt carries the profile card and each tool's results under its n
   assert.match(prompt, /## get_certifications\ntotal_held: 4/);
   assert.match(prompt, /## get_skills\(\{"query":"Rust"\}\)\nlisted: false/);
   assert.match(prompt, /fields named resume_\*/);
+});
+
+test("the profile card always carries the contact channels (so 'ask him directly' is actionable and grounded), never a phone", () => {
+  const card = profileCard();
+  assert.match(card, /Contact: atharvajadhav968@gmail\.com; LinkedIn https:\/\/www\.linkedin\.com\/in\//);
+  assert.ok(!/\+?\d[\d\s().-]{8,}\d/.test(card), "no phone-like digits");
+  assert.ok(buildAnswerPrompt().includes(card));
 });
 
 test("lookup prompt is small: it does NOT contain the whole KB or the resume", () => {

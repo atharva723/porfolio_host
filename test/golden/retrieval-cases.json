@@ -1,0 +1,62 @@
+[
+  { "id": "certs-all", "tool": "get_certifications", "args": {},
+    "mustContain": ["total_held: 4", "AZ-900", "AI-901", "AI-103", "CCAO-F", "4643C462FF5233C9", "493ADEA057BE4512", "AF8AB224DC76D2B2", "credly.com/badges", "valid until Oct 2027"],
+    "mustNotContain": ["Forage", "Tata", "Data Visualisation"] },
+  { "id": "certs-vendor-filter", "tool": "get_certifications", "args": { "query": "claude" },
+    "mustContain": ["matched: 1", "Anthropic", "CCAO-F"],
+    "mustNotContain": ["AZ-900", "AI-901"] },
+  { "id": "certs-code-filter", "tool": "get_certifications", "args": { "query": "AI-103" },
+    "mustContain": ["Azure AI Apps and Agents Developer Associate", "AF8AB224DC76D2B2"],
+    "mustNotContain": ["CCAO-F"] },
+  { "id": "certs-definite-miss", "tool": "get_certifications", "args": { "query": "Kubernetes" },
+    "mustContain": ["matched: 0", "No certification matches \"Kubernetes\"", "He holds 4 in total"],
+    "mustNotContain": ["CKA", "CKAD"] },
+
+  { "id": "education-all", "tool": "get_education", "args": {},
+    "mustContain": ["7.11 CGPA", "8.21 CGPA", "77%", "University of Mumbai", "Kamothe", "2021–2025", "P.E. Society"],
+    "mustNotContain": [] },
+
+  { "id": "contact-channels", "tool": "get_contact_info", "args": {},
+    "mustContain": ["atharvajadhav968@gmail.com", "linkedin.com/in/atharva-jadhav", "github.com/atharva723", "Mumbai, India", "Salary expectations are not listed", "phone number is never shared"],
+    "mustNotContain": ["+91", "9000", "[phone number withheld]"] },
+
+  { "id": "skill-listed", "tool": "get_skills", "args": { "query": "Terraform" },
+    "mustContain": ["listed: true", "matches_in_resume:", "matches_in_linkedin:"],
+    "mustNotContain": ["is not listed"] },
+  { "id": "skill-not-listed", "tool": "get_skills", "args": { "query": "Rust" },
+    "mustContain": ["listed: false", "\"Rust\" is not listed in his resume or LinkedIn skills"],
+    "mustNotContain": [] },
+  { "id": "skills-overview", "tool": "get_skills", "args": {},
+    "mustContain": ["Agentic AI", "Copilot Studio", "FastAPI", "Terraform", "Retrieval-Augmented Generation (RAG)"],
+    "mustNotContain": [] },
+
+  { "id": "experience-timeline", "tool": "get_experience", "args": {},
+    "mustContain": ["Apr 2026 – Present", "Agentic Factory Operations", "joined LTIMindtree full-time in January 2026", "April 2026", "\"title\":\"Engineer - Cloud & Infra\"", "\"company\":\"LTIMindtree\""],
+    "mustNotContain": [] },
+
+  { "id": "projects-by-keyword", "tool": "get_projects", "args": { "query": "RAG" },
+    "mustContain": ["github.com/atharva723", "tenant-specific RAG"],
+    "mustNotContain": [] },
+  { "id": "projects-all", "tool": "get_projects", "args": {},
+    "mustContain": ["total_projects: 8", "github.com/atharva723/CodeAuditor_copilot_CLI_agent", "Omnichannel AI Support Sentinel"],
+    "mustNotContain": [] },
+
+  { "id": "linkedin-snapshot", "tool": "get_linkedin_profile", "args": {},
+    "mustContain": ["snapshot_as_of:", "Cloud & AI Engineer", "Navi Mumbai", "may be newer", "linkedin.com/in/atharva-jadhav"],
+    "mustNotContain": ["400706"] },
+
+  { "id": "resume-section", "tool": "get_resume", "args": { "section": "education" },
+    "mustContain": ["University of Mumbai"],
+    "mustNotContain": ["Terraform"] },
+  { "id": "resume-whole", "tool": "get_resume", "args": {},
+    "mustContain": ["Agentic Factory Operations", "AZ-900", "FastAPI"],
+    "mustNotContain": [] },
+
+  { "id": "site-link", "tool": "get_site_links", "args": { "section": "projects" },
+    "mustContain": ["https://atharva-host.vercel.app/#projects"],
+    "mustNotContain": [] },
+
+  { "id": "download-not-configured", "tool": "get_resume_download", "args": {},
+    "mustContain": ["available: false", "not set up right now"],
+    "mustNotContain": ["http", "docs.google"] }
+]

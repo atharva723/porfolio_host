@@ -1,0 +1,82 @@
+name: Live evaluation
+
+# Sends the golden cases to the REAL models and enforces the release gates
+# (see scripts/eval-live.js). Costs API tokens and takes ~15-20 minutes, so it is
+# manual or weekly, never on pull requests (a fork PR must not get access to secrets).
+#
+# Required repository secret:  LLM_API_KEY   (the Groq key)
+# Optional repository secrets: LLM_PROVIDER, LLM_MODEL, GUARD_MODEL, PLAN_MODEL, VERIFY_MODEL
+
+on:
+  workflow_dispatch:
+    inputs:
+      suites:
+        description: "Suites to run (space separated: guard plan verify e2e conversation poison). Empty = all."
+        required: false
+        default: ""
+  schedule:
+    - cron: "0 5 * * 1" # Mondays 05:00 UTC: catches retired models and silent provider drift
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-eval
+  cancel-in-progress: false
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # No secrets in this step: dependency install scripts must never see the API key.
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Fail early if the key is missing
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          if [ -z "$LLM_API_KEY" ]; then
+            echo "::error::Add the LLM_API_KEY repository secret (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+
+      # Reports a retired model or a revoked key in seconds, before the 15-minute run.
+      # Informational only: the evaluation below is the real gate.
+      - name: Check models are available
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          GUARD_MODEL: ${{ secrets.GUARD_MODEL }}
+          PLAN_MODEL: ${{ secrets.PLAN_MODEL }}
+          VERIFY_MODEL: ${{ secrets.VERIFY_MODEL }}
+        run: node scripts/check-env.js --live || true
+
+      - name: Run live evaluation
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          GUARD_MODEL: ${{ secrets.GUARD_MODEL }}
+          PLAN_MODEL: ${{ secrets.PLAN_MODEL }}
+          VERIFY_MODEL: ${{ secrets.VERIFY_MODEL }}
+          SUITES: ${{ github.event.inputs.suites }}
+        run: node scripts/eval-live.js $SUITES --report eval-report.json
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: eval-report.json
+          if-no-files-found: ignore
+          retention-days: 30

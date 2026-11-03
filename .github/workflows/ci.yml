@@ -1,0 +1,44 @@
+name: CI
+
+# Offline tests only: no secrets, no network calls to model providers.
+# The live model evaluation is a separate, manual/scheduled workflow (eval.yml).
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # Unit, integration, golden-set, resilience and observability tests. All LLM calls are
+      # stubbed, so this needs no API keys and runs identically for forks and pull requests.
+      - name: Test
+        run: npm test
+
+      # The assistant's knowledge base must always be valid and readable.
+      - name: Validate knowledge base
+        run: node -e "const k=require('./lib/kb'); const d=k.load(); console.log('kb ok, version', k.version(d))"

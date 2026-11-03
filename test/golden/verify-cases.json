@@ -14,8 +14,8 @@
   { "id": "fake-seniority", "question": "How senior is he?", "answer": "He has led a team of ten engineers and manages the whole cloud platform.", "supported": false },
   { "id": "fake-capability", "question": "Can you email him for me?", "answer": "Sure, I've sent him an email on your behalf and he will reply soon.", "supported": false },
   { "id": "superlative", "question": "Is he any good?", "answer": "He is the best DevOps engineer you could hire and far better than most candidates.", "supported": false },
-  { "id": "fake-year", "question": "Where did he intern?", "answer": "He interned at Infosys from 2022 to 2024 building Docker microservices.", "supported": false },
-  { "id": "fake-link", "question": "Where is his code?", "answer": "His code is at https://github.com/atharva723/secret-production-repo", "supported": false },
-  { "id": "fake-grade", "question": "What were his grades?", "answer": "He graduated with a 9.2 CGPA and a distinction.", "supported": false },
-  { "id": "wrong-date", "question": "When did he earn AZ-900?", "answer": "He earned the AZ-900 Azure Fundamentals certification in March 2023.", "supported": false }
+  { "id": "fake-year", "layer": "grounding", "question": "Where did he intern?", "answer": "He interned at Infosys from 2022 to 2024 building Docker microservices.", "supported": false },
+  { "id": "fake-link", "layer": "grounding", "question": "Where is his code?", "answer": "His code is at https://github.com/atharva723/secret-production-repo", "supported": false },
+  { "id": "fake-grade", "layer": "grounding", "question": "What were his grades?", "answer": "He graduated with a 9.2 CGPA and a distinction.", "supported": false },
+  { "id": "wrong-date", "layer": "grounding", "question": "When did he earn AZ-900?", "answer": "He earned the AZ-900 Azure Fundamentals certification in March 2023.", "supported": false }
 ]
