@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-31",
+  "updated": "2026-11-04",
   "profile": {
     "id": "profile",
     "source": "owner",
@@ -12,8 +12,57 @@
     "email": "atharvajadhav968@gmail.com",
     "github": "https://github.com/atharva723",
     "linkedin": "https://www.linkedin.com/in/atharva-jadhav-b122102b3/",
-    "website": "https://atharva-host.vercel.app/"
+    "website": "https://atharva-host.vercel.app/",
+    "tagline": "Building enterprise AI agents and intelligent automation with Copilot Studio, Power Platform, and Azure."
   },
+  "about": {
+    "id": "about",
+    "source": "resume",
+    "updated": "2026-11-04",
+    "paragraphs": [
+      "I'm an **AI & Agentic Automation Engineer** at **LTIMindtree**, working on enterprise Agentic AI and intelligent automation for a Microsoft project, Agentic Factory Operations.",
+      "My work focuses on **Copilot Studio** agents integrated with **Power Automate** and Microsoft 365 services. I ground their answers with Dataverse, SharePoint and Power BI semantic models, and integrate SharePoint, Outlook and Microsoft Graph through Power Automate.",
+      "Alongside that, I build **Python and LLM-based solutions**. My background spans cloud, DevOps and AI/ML."
+    ]
+  },
+  "experience": [
+    {
+      "id": "exp-ltimindtree",
+      "source": "resume",
+      "updated": "2026-11-04",
+      "role": "Engineer, Cloud & Infra Management",
+      "company": "LTIMindtree",
+      "started": "Jan 2026",
+      "ended": null,
+      "engagement": {
+        "name": "Microsoft Project: Agentic Factory Operations",
+        "started": "Apr 2026"
+      },
+      "points": [
+        "Streamlined enterprise business processes by architecting automated Power Automate and Power Platform workflows.",
+        "Developed Copilot Studio agents, configuring custom topics, knowledge bases, and conversational flows integrated with backend workflows.",
+        "Orchestrated cross-platform automation by integrating SharePoint, Outlook, and Microsoft Graph via Power Automate.",
+        "Leveraged AI Builder, Dataverse, SharePoint, and Power BI semantic models to deliver grounded AI responses and intelligent insights.",
+        "Managed API integrations, governance controls, and performance tuning while supporting deployments across development environments.",
+        "Completed structured training in Azure cloud, DevOps and AI/ML, with a focus on Python, LLMs and agentic AI development."
+      ]
+    }
+  ],
+  "skills": [
+    { "id": "skill-python", "source": "owner", "updated": "2026-11-04", "name": "Python", "level": "Advanced", "icon": "fab fa-python" },
+    { "id": "skill-agentic-ai", "source": "resume", "updated": "2026-11-04", "name": "Agentic AI", "icon": "fas fa-robot" },
+    { "id": "skill-copilot-studio", "source": "resume", "updated": "2026-11-04", "name": "Copilot Studio", "icon": "fas fa-comments" },
+    { "id": "skill-power-platform", "source": "resume", "updated": "2026-11-04", "name": "Power Platform", "icon": "fas fa-diagram-project" },
+    { "id": "skill-llm-rag", "source": "resume", "updated": "2026-11-04", "name": "LLMs / RAG", "icon": "fas fa-wand-magic-sparkles" },
+    { "id": "skill-azure", "source": "resume", "updated": "2026-11-04", "name": "Azure", "icon": "fas fa-cloud" },
+    { "id": "skill-azure-ai", "source": "owner", "updated": "2026-11-04", "name": "Azure AI", "level": "Intermediate", "icon": "fas fa-brain" },
+    { "id": "skill-azure-devops", "source": "owner", "updated": "2026-11-04", "name": "Azure DevOps", "level": "Advanced", "icon": "fas fa-infinity" },
+    { "id": "skill-github-copilot", "source": "resume", "updated": "2026-11-04", "name": "GitHub Copilot", "icon": "fab fa-github" },
+    { "id": "skill-claude-code", "source": "resume", "updated": "2026-11-04", "name": "Claude Code", "icon": "fas fa-terminal" },
+    { "id": "skill-docker", "source": "owner", "updated": "2026-11-04", "name": "Docker", "level": "Advanced", "icon": "fab fa-docker" },
+    { "id": "skill-terraform", "source": "owner", "updated": "2026-11-04", "name": "Terraform", "level": "Intermediate", "icon": "fas fa-code" },
+    { "id": "skill-git", "source": "owner", "updated": "2026-11-04", "name": "Git", "level": "Advanced", "icon": "fab fa-git-alt" }
+  ],
   "education": [
     {
       "id": "edu-be",
@@ -43,6 +92,7 @@
       "code": "AZ-900",
       "title": "Microsoft Certified: Azure Fundamentals",
       "issuer": "Microsoft",
+      "icon": "fab fa-microsoft",
       "earned": "Aug 2026",
       "credentialId": "4643C462FF5233C9",
       "verifyUrl": "https://learn.microsoft.com/api/credentials/share/en-us/AtharvaJadhavInternationalSupplier-4962/4643C462FF5233C9?sharingId=454FAFEA6CCB7145"
@@ -54,6 +104,7 @@
       "code": "AI-901",
       "title": "Microsoft Certified: Azure AI Fundamentals",
       "issuer": "Microsoft",
+      "icon": "fab fa-microsoft",
       "earned": "Oct 2026",
       "credentialId": "493ADEA057BE4512",
       "verifyUrl": "https://learn.microsoft.com/api/credentials/share/en-us/AtharvaJadhavInternationalSupplier-4962/493ADEA057BE4512"
@@ -65,6 +116,7 @@
       "code": "AI-103",
       "title": "Microsoft Certified: Azure AI Apps and Agents Developer Associate",
       "issuer": "Microsoft",
+      "icon": "fab fa-microsoft",
       "earned": "Oct 2026",
       "expires": "Oct 2027",
       "credentialId": "AF8AB224DC76D2B2",
@@ -77,6 +129,7 @@
       "code": "CCAO-F",
       "title": "Claude Certified Associate - Foundations",
       "issuer": "Anthropic",
+      "icon": "fas fa-certificate",
       "earned": "Oct 2026",
       "expires": "Oct 2027",
       "verifyUrl": "https://www.credly.com/badges/1947fb57-1d84-44d1-9db0-91e2c68c568a/linked_in_profile"

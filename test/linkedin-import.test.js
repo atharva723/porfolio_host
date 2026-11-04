@@ -113,6 +113,29 @@ test("import produces a clean snapshot and never leaks private columns or files"
   assert.doesNotThrow(() => kbLib.validate(kb), "merged KB stays valid");
 });
 
+test("an import never touches the website-facing sections, and keeps hand-set credential icons", () => {
+  const before = JSON.parse(JSON.stringify(kbLib.load()));
+  const { raw } = readExport(makeExport());
+  const { kb } = mergeIntoKb(JSON.parse(JSON.stringify(before)), raw, config, TODAY);
+
+  for (const section of ["about", "experience", "skills", "education", "facts", "projects"]) {
+    assert.deepEqual(kb[section], before[section], `${section} is untouched by the import`);
+  }
+  assert.equal(kb.profile.tagline, before.profile.tagline);
+  for (const c of before.credentials.filter((x) => kb.credentials.some((n) => n.id === x.id))) {
+    assert.equal(kb.credentials.find((n) => n.id === c.id).icon, c.icon, `${c.code || c.title} keeps its icon`);
+  }
+  assert.doesNotThrow(() => kbLib.validate(kb));
+});
+
+test("a credential added by an import has no icon and is still valid (the site falls back to a default)", () => {
+  const { raw } = readExport(makeExport());
+  const { kb } = mergeIntoKb(baseKb(), raw, config, TODAY);
+  const added = kb.credentials.find((c) => c.code === "AI-901");
+  assert.ok(added && added.icon === undefined);
+  assert.doesNotThrow(() => kbLib.validate(kb));
+});
+
 test("credentials: excluded ones are dropped, codes come from config, new ones are added", () => {
   const { raw } = readExport(makeExport());
   const { kb, report } = mergeIntoKb(baseKb(), raw, config, TODAY);

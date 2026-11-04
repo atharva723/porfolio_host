@@ -236,6 +236,26 @@ Redis keys: `sess:<id>:turns` (last 12 messages, sliding TTL), `sess:<id>:lock`
 
 ## Updating content
 
+> **Migration in progress — one content record for site and assistant.**
+> `kb/kb.json` is becoming the single source for both, so the website and the
+> assistant cannot disagree. It already holds every section the site shows
+> (table below). Until the site is switched over to read it, the page still
+> renders from `public/js/data.js`; change both if you edit content meanwhile.
+
+| `kb.json` section | Holds | Rules (enforced when the file loads) |
+| --- | --- | --- |
+| `profile` | name, headline, `tagline` (hero subtitle), location, e-mail, GitHub, LinkedIn, site URL | one place for contact details |
+| `about` | the about paragraphs | plain text; `**bold**` is the only markup |
+| `experience` | roles, `Mon YYYY` dates (`ended: null` = current), optional `engagement` (project + start), bullet points | newest first; no end before start |
+| `skills` | name, optional `icon`, optional `level` | a `level` is the **owner's own rating** (the assistant presents it as self-rated), so only `source: "owner"` entries carry one |
+| `education`, `credentials`, `facts` | degrees and scores; certifications with verify links (optional `icon`); short statements the assistant may repeat | |
+| `projects`, `linkedin` | GitHub details; the LinkedIn snapshot | refreshed by `kb:sync` / `kb:linkedin`, which never touch the other sections |
+
+Everything the site will render is plain text (no `<` or `>`) and icons must be
+Font Awesome 6 classes such as `fab fa-python`, so a typo in `kb.json` can't
+inject markup. A malformed file fails fast with a precise message
+(`npm test`, `npm run check:env`).
+
 - **Website content** (name, skills, projects, experience, certifications,
   contact): edit `public/js/data.js` only — the page renders from it.
 - **Project cards** are rendered from `public/data/projects.json` when present
@@ -246,9 +266,10 @@ Redis keys: `sess:<id>:turns` (last 12 messages, sliding TTL), `sess:<id>:lock`
     (`RESUME_CACHE_SECONDS`), no redeploy. It is the source of truth for current
     role, experience, skills and certifications. Phone numbers in the doc are
     redacted before the model sees it.
-  - **`kb/kb.json`** — everything not in the resume: profile basics, education,
-    certification details and verify links, quick facts, project details, and the
-    LinkedIn snapshot. Each entry has an `id`, `source` and `updated` date.
+  - **`kb/kb.json`** — the content record above: profile basics, about,
+    experience, skills, education, certification details and verify links, quick
+    facts, project details, and the LinkedIn snapshot. Each entry has an `id`,
+    `source` and `updated` date.
   - The system prompt includes both, so it is part of the cache key: editing
     either one invalidates cached replies automatically.
 
@@ -287,7 +308,7 @@ lib/
   messages.js          Fixed redirect / refusal / decline / "can't confirm" replies
   llm.js               Provider abstraction + per-stage models, retries, deadlines
   knowledge.js         Prompts: lean lookup prompt + full-context fallback prompt
-  kb.js                Loads/validates kb/kb.json and renders it as prompt text
+  kb.js                Loads/validates kb/kb.json (incl. the website-facing sections) and renders it as prompt text
   kb-build.js          README cleaning + repo-link helpers for the KB sync
   kb-check.js          Drift check: KB vs live resume, snapshot staleness
   linkedin-import.js   LinkedIn export -> kb.json (allow-listed files/columns only)
@@ -303,7 +324,7 @@ lib/
   redis.js             Shared Upstash Redis client (null when unconfigured)
   session.js           Server-owned chat sessions (cookie id, Redis memory, lock)
   ratelimit.js         Redis rate limits with hashed IPs + in-memory fallback
-kb/kb.json             Assistant knowledge base (profile, education, facts, projects)
+kb/kb.json             Canonical content record (profile, about, experience, skills, education, credentials, facts, projects, LinkedIn)
 scripts/
   sync-kb-projects.js  `npm run kb:sync` — refresh kb.json projects from GitHub
   import-linkedin.js   `npm run kb:linkedin` — import a LinkedIn export
