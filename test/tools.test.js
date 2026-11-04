@@ -242,11 +242,15 @@ test("get_resume reports stale copies, truncation and unavailability honestly", 
 });
 
 /* ---- site links ---- */
-test("get_site_links only points at sections that exist on the page", async () => {
-  const html = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+test("get_site_links matches the page exactly: every linked section exists, and no section is missing", async () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "views", "index.html"), "utf8");
+  const onPage = [...html.matchAll(/<section[^>]*\sid="([^"]+)"/g)].map((m) => m[1]).filter((id) => id !== "home");
+  const linked = Object.keys(require("../lib/tools/site-links").SECTIONS);
+  assert.deepEqual([...linked].sort(), [...onPage].sort(), "SECTIONS and the <section id> list in index.html are identical");
+  assert.ok(linked.includes("education"), "the Education section is linkable");
+
   const r = await run("get_site_links");
-  assert.equal(r.sections.length, 6);
-  for (const id of Object.keys(require("../lib/tools/site-links").SECTIONS)) assert.match(html, new RegExp(`<section[^>]*id="${id}"`), `#${id} exists in index.html`);
+  assert.equal(r.sections.length, onPage.length);
   assert.match(r.sections[0], /^about: https:\/\/atharva-host\.vercel\.app\/#about — /);
 
   const one = await run("get_site_links", { section: "projects" });

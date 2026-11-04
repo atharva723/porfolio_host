@@ -198,7 +198,7 @@ test("the cache key changes when the KB or the resume changes", () => {
   assert.notEqual(a, agent.dataFingerprint({ available: true, text: "resume two" }));
   assert.notEqual(a, agent.dataFingerprint({ available: false }));
   assert.equal(a, agent.dataFingerprint({ available: true, text: "resume one" }));
-  assert.match(agent.CACHE_VERSION, /^chat-v3\|plan-v2\|guard-v\d+\|verify-v\d+$/);
+  assert.match(agent.CACHE_VERSION, /^chat-v3\|plan-v3\|guard-v\d+\|verify-v\d+$/);
 });
 
 test("a corrupt or old-format cache entry is treated as a miss, not a crash", async () => {

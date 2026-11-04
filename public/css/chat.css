@@ -35,6 +35,7 @@
 .nav-links .ask-trigger {
     padding: 0.5rem 1.1rem;
     font-size: 0.85rem;
+    white-space: nowrap;
 }
 
 /* ===============================

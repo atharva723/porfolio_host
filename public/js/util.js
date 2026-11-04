@@ -25,18 +25,20 @@
     return "#";
   }
 
-  // Minimal allowlist sanitizer for rich text (e.g. about paragraphs that
-  // intentionally contain <strong>). Escapes everything, then re-enables a
-  // tiny set of formatting tags. No attributes are ever allowed.
-  function sanitizeHtml(str) {
-    let html = escapeHtml(str);
-    html = html
-      .replace(/&lt;(\/?)(strong|b|em|i|br)\s*&gt;/gi, "<$1$2>")
-      .replace(/&lt;br\s*\/&gt;/gi, "<br>");
-    return html;
+  // Text with **bold** markers -> safe HTML. The text is escaped FIRST, so the only tags that can
+  // ever appear are the <strong> pairs created here, never anything from the data.
+  function boldText(str) {
+    return escapeHtml(str).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   }
 
-  root.PortfolioUtil = { escapeHtml: escapeHtml, safeUrl: safeUrl, sanitizeHtml: sanitizeHtml };
+  // "Jane Doe" -> { first: "Jane ", last: "Doe" } (the hero types them separately).
+  function splitName(name) {
+    const full = String(name == null ? "" : name).trim();
+    const at = full.lastIndexOf(" ");
+    return at < 0 ? { first: "", last: full } : { first: full.slice(0, at + 1), last: full.slice(at + 1) };
+  }
+
+  root.PortfolioUtil = { escapeHtml: escapeHtml, safeUrl: safeUrl, boldText: boldText, splitName: splitName };
 
   if (typeof module !== "undefined" && module.exports) {
     module.exports = root.PortfolioUtil;

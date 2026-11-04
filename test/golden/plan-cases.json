@@ -13,6 +13,7 @@
   { "message": "Has he built anything with RAG?", "anyOf": ["get_projects", "get_skills"] },
   { "message": "Show me his projects", "include": ["get_projects"] },
   { "message": "Where can I see his projects on the website?", "include": ["get_site_links"] },
+  { "message": "Which part of his website shows his education?", "include": ["get_site_links"] },
   { "message": "What does his LinkedIn say?", "include": ["get_linkedin_profile"] },
   { "message": "Can I download his resume?", "include": ["get_resume_download"] },
   { "message": "Send me his CV as a PDF please", "include": ["get_resume_download"] },

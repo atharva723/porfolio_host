@@ -280,7 +280,8 @@ nav.scrolled {
 
         .nav-links {
             display: flex;
-            gap: 3rem;
+            /* Tightens as the window narrows so the links and the Ask button always fit on one row */
+            gap: clamp(1rem, calc((100vw - 760px) / 8), 3rem);
             list-style: none;
             color: var(--text-primary);
         }
@@ -699,11 +700,21 @@ nav.scrolled {
             font-size: 0.95rem;
         }
 
-        /* Skills Section */
+        /* Skills Section
+           Flex-wrap (not a fixed grid) so a short last row is centred whatever the number of
+           skills in kb.json; --cols/--gap are tuned per breakpoint below. */
         .skills-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 3.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            --cols: 4;
+            --gap: 3.5rem;
+            gap: var(--gap);
+        }
+
+        .skills-grid > .skill-card {
+            flex: 0 0 calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
+            min-width: 0;
         }
 
          .skill-card {
@@ -1218,6 +1229,38 @@ nav.scrolled {
 }
 
 
+        /* Eight links plus the Ask button don't fit side by side on narrow desktops/tablets:
+           use the same slide-in menu as phones up to 900px. */
+        @media (min-width: 769px) and (max-width: 900px) {
+            .nav-container {
+                padding: 1rem 1.5rem;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 70px);
+                background: rgba(0, 0, 0, 0.95);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                transition: left 0.3s;
+                gap: 2rem;
+            }
+
+            .nav-links.active {
+                left: 0;
+            }
+        }
+
         @media (max-width: 768px) {
             .nav-container {
                 padding: 1rem 1.5rem;
@@ -1267,7 +1310,7 @@ nav.scrolled {
             }
 
             .skills-grid {
-                grid-template-columns: repeat(2, 1fr);
+                --cols: 2;
             }
 
             .stats {
@@ -1411,8 +1454,8 @@ nav.scrolled {
 
   /* ---------- SKILLS ---------- */
   .skills-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.9rem;
+    --cols: 2;
+    --gap: 0.9rem;
   }
 
   .skill-card {
@@ -1611,7 +1654,8 @@ nav.scrolled {
    Premium credential cards — glass surface,
    gold badge, verifiable proof, responsive grid.
    ========================================= */
-.certifications-grid {
+.certifications-grid,
+.education-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.6rem;
@@ -1770,13 +1814,47 @@ nav.scrolled {
 }
 
 @media (max-width: 768px) {
-    .certifications-grid {
+    .certifications-grid,
+    .education-grid {
         grid-template-columns: 1fr;
         gap: 1.2rem;
     }
     .cert-card {
         padding: 1.6rem 1.4rem;
     }
+}
+
+/* Education cards reuse the credential card; only the score line is new. */
+.edu-score {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--accent-bright);
+}
+
+.edu-score i {
+    font-size: 0.85rem;
+    color: var(--accent);
+}
+
+/* Shown only when the site content could not be loaded (see render.js) */
+.content-unavailable {
+    position: relative;
+    z-index: 2;
+    margin: 6rem auto 0;
+    max-width: 640px;
+    padding: 1rem 1.4rem;
+    text-align: center;
+    color: var(--text-primary);
+    background: rgba(255, 178, 44, 0.08);
+    border: 1px solid var(--border-gold);
+    border-radius: 14px;
+}
+
+.content-unavailable[hidden] {
+    display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

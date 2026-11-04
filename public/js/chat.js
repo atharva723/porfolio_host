@@ -12,7 +12,7 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   };
-  const ownerName = (window.portfolioData && window.portfolioData.site && window.portfolioData.site.name) || "me";
+  const ownerName = (window.siteContent && window.siteContent.profile && window.siteContent.profile.name) || "me";
   const firstName = ownerName.split(" ")[0] || ownerName;
 
   // Conversation state: [{ role: "user" | "assistant", content }]

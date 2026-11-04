@@ -1,4 +1,5 @@
 const express = require("express");
+const fs = require("fs");
 const path = require("path");
 const helmet = require("helmet");
 
@@ -18,6 +19,7 @@ const rateLimit = require("./lib/ratelimit");
 const agent = require("./lib/agent");
 const resumeDownload = require("./lib/sources/resume-download");
 const health = require("./lib/health");
+const siteContent = require("./lib/site-content");
 const CONFIG = require("./public/js/config.js");
 
 const app = express();
@@ -48,13 +50,51 @@ app.use(
   })
 );
 
-// Serve static files
-app.use(express.static(path.join(__dirname, "public")));
-app.use(express.json({ limit: "16kb" }));
+// ---- Website content ----
+// The page and the assistant read the same record (kb/kb.json). The server projects it into the
+// content the page needs (lib/site-content.js) and inlines it in the page template, so the page
+// renders without an extra request or a flash of empty sections. The same object is served as JSON.
+// The template lives in views/, NOT in the static public/ folder: no URL (extra slashes, %-encoding,
+// casing, ../) can reach the raw file, because it is simply not under the static root.
+const INDEX_FILE = path.join(__dirname, "views", "index.html");
+let indexCache = { mtimeMs: 0, html: "" };
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+function indexTemplate() {
+  const mtimeMs = fs.statSync(INDEX_FILE).mtimeMs;
+  if (indexCache.mtimeMs !== mtimeMs) indexCache = { mtimeMs, html: fs.readFileSync(INDEX_FILE, "utf8") };
+  return indexCache.html;
+}
+
+function buildContent() {
+  try {
+    return siteContent.build();
+  } catch (err) {
+    // Never include the message: it may quote the KB. The details are in `npm run check:env`.
+    console.error(JSON.stringify({ evt: "site_content_error", name: err && err.name }));
+    return null;
+  }
+}
+
+app.get(["/", "/index.html"], (req, res) => {
+  const content = buildContent();
+  // `no-cache` = revalidate every time (cheap 304 via ETag), so a new deployment shows at once.
+  res.set("Cache-Control", content ? "no-cache" : "no-store");
+  res.type("html").send(siteContent.renderPage(indexTemplate(), content));
 });
+
+app.get("/data/site.json", (req, res) => {
+  const content = buildContent();
+  if (!content) {
+    res.set("Cache-Control", "no-store");
+    return res.status(503).json({ error: "The site content is temporarily unavailable." });
+  }
+  res.set("Cache-Control", "no-cache");
+  return res.json(content);
+});
+
+// Serve static files (index: false, because "/" is handled above)
+app.use(express.static(path.join(__dirname, "public"), { index: false }));
+app.use(express.json({ limit: "16kb" }));
 
 // ---- Recruiter chat API ----
 

@@ -55,6 +55,9 @@
   { "id": "site-link", "tool": "get_site_links", "args": { "section": "projects" },
     "mustContain": ["https://atharva-host.vercel.app/#projects"],
     "mustNotContain": [] },
+  { "id": "site-link-education", "tool": "get_site_links", "args": { "section": "education" },
+    "mustContain": ["https://atharva-host.vercel.app/#education"],
+    "mustNotContain": [] },
 
   { "id": "download-not-configured", "tool": "get_resume_download", "args": {},
     "mustContain": ["available: false", "not set up right now"],

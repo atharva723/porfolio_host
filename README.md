@@ -3,11 +3,15 @@
 A personal portfolio website with an **"Ask about me"** AI assistant that lets
 recruiters ask questions and get answers grounded in the portfolio content.
 
-- **Frontend:** vanilla HTML/CSS/JS (no build step), content-driven from `public/js/data.js`.
-- **Backend:** small Node.js/Express app exposing `POST /api/chat`.
-- **AI:** the assistant answers from its own knowledge base (`kb/kb.json`) plus
+- **Frontend:** vanilla HTML/CSS/JS (no build step). The page renders from the same
+  content record as the assistant (`kb/kb.json`), which the server inlines into the
+  page; headings and layout live in `public/js/layout.js`.
+- **Backend:** small Node.js/Express app exposing `POST /api/chat` and the site
+  content (`GET /` and `GET /data/site.json`).
+- **AI:** the assistant answers from the same knowledge base (`kb/kb.json`) plus
   your **live resume** (a published Google Doc), injected into the system prompt
-  of a swappable LLM provider. It does not read the website's `data.js`.
+  of a swappable LLM provider. The website and the assistant read the same record,
+  so they cannot disagree.
 - **Caching:** identical questions reuse a stored answer (in-memory + optional
   Upstash Redis) to cut redundant LLM calls.
 - **Automation:** an n8n workflow keeps the project cards in sync with GitHub
@@ -236,42 +240,49 @@ Redis keys: `sess:<id>:turns` (last 12 messages, sliding TTL), `sess:<id>:lock`
 
 ## Updating content
 
-> **Migration in progress — one content record for site and assistant.**
-> `kb/kb.json` is becoming the single source for both, so the website and the
-> assistant cannot disagree. It already holds every section the site shows
-> (table below). Until the site is switched over to read it, the page still
-> renders from `public/js/data.js`; change both if you edit content meanwhile.
+**One content record feeds both the website and the assistant.** Edit
+`kb/kb.json` and both change together; nothing about you is typed into the page
+itself. Each request, the server projects the record into exactly what the page
+needs (`lib/site-content.js`, a whitelist: quick facts, the LinkedIn snapshot and
+README excerpts never leave the server, and any phone number is redacted) and
+inlines it in the page template (`views/index.html`). The same
+object is served at `GET /data/site.json`. Redeploy after editing the file.
 
 | `kb.json` section | Holds | Rules (enforced when the file loads) |
 | --- | --- | --- |
-| `profile` | name, headline, `tagline` (hero subtitle), location, e-mail, GitHub, LinkedIn, site URL | one place for contact details |
+| `profile` | name, headline, `tagline` (hero subtitle), location, e-mail, GitHub, LinkedIn, site URL | one place for contact details: the contact buttons are built from it |
 | `about` | the about paragraphs | plain text; `**bold**` is the only markup |
 | `experience` | roles, `Mon YYYY` dates (`ended: null` = current), optional `engagement` (project + start), bullet points | newest first; no end before start |
 | `skills` | name, optional `icon`, optional `level` | a `level` is the **owner's own rating** (the assistant presents it as self-rated), so only `source: "owner"` entries carry one |
-| `education`, `credentials`, `facts` | degrees and scores; certifications with verify links (optional `icon`); short statements the assistant may repeat | |
-| `projects`, `linkedin` | GitHub details; the LinkedIn snapshot | refreshed by `kb:sync` / `kb:linkedin`, which never touch the other sections |
+| `education`, `credentials`, `facts` | degrees and scores; certifications with verify links (optional `icon`); short statements the assistant may repeat (`facts` stay server-side) | certificate validity and order come from `lib/credentials.js`, which the assistant's tool uses too |
+| `projects`, `linkedin` | GitHub details; the LinkedIn snapshot (both server-side only) | refreshed by `kb:sync` / `kb:linkedin`, which never touch the other sections |
 
-Everything the site will render is plain text (no `<` or `>`) and icons must be
-Font Awesome 6 classes such as `fab fa-python`, so a typo in `kb.json` can't
-inject markup. A malformed file fails fast with a precise message
-(`npm test`, `npm run check:env`).
+The stats on the About section (certifications, projects, skills, months of
+experience) are **counted from this data** (overlapping roles are not counted
+twice), so they can't go out of date;
+`public/js/layout.js` only chooses which to show. Everything the site renders is
+plain text (no `<` or `>`) and icons must be Font Awesome 6 classes such as
+`fab fa-python`, so a typo in `kb.json` can't inject markup. A malformed file
+fails fast with a precise message (`npm test`, `npm run check:env`), and if the
+content can't be loaded at all the page still opens and shows a notice instead of
+a blank screen (`/api/health` reports the problem).
 
-- **Website content** (name, skills, projects, experience, certifications,
-  contact): edit `public/js/data.js` only — the page renders from it.
-- **Project cards** are rendered from `public/data/projects.json` when present
-  (kept up to date by the n8n automation in [`automation/`](automation/)), and
-  fall back to `public/js/data.js` if that file is missing or invalid.
-- **What the chat assistant knows** is separate from the website:
+- **What the page says about you:** `kb/kb.json` (above).
+- **Section headings, which stats and contact buttons to show:** `public/js/layout.js`.
+  It holds no facts (a test fails if a name, link, skill, certificate or date is
+  typed into it or any other file under `public/`).
+- **Project cards** come from `public/data/projects.json` (kept up to date by the
+  n8n automation in [`automation/`](automation/)): it decides which projects show,
+  their order and icons. Each card is validated (https links only, bad items
+  skipped), and if the file is missing or unusable the GitHub-synced projects in
+  `kb.json` are used instead.
+- **What the chat assistant knows** besides `kb.json`:
   - **Resume** — edit your Google Doc; the assistant picks it up within an hour
     (`RESUME_CACHE_SECONDS`), no redeploy. It is the source of truth for current
     role, experience, skills and certifications. Phone numbers in the doc are
     redacted before the model sees it.
-  - **`kb/kb.json`** — the content record above: profile basics, about,
-    experience, skills, education, certification details and verify links, quick
-    facts, project details, and the LinkedIn snapshot. Each entry has an `id`,
-    `source` and `updated` date.
-  - The system prompt includes both, so it is part of the cache key: editing
-    either one invalidates cached replies automatically.
+  - The system prompt includes `kb.json` and the resume, so both are part of the
+    cache key: editing either one invalidates cached replies automatically.
 
 ### Keeping the knowledge base current
 
@@ -297,7 +308,7 @@ nothing.
 ## Project structure
 
 ```
-server.js              Express app: static hosting + POST /api/chat
+server.js              Express app: the page (content inlined), /data/site.json, POST /api/chat, health, /resume.pdf
 lib/
   agent.js             One chat turn: cache -> guard -> plan -> tools -> answer -> verify -> reply
   planner.js           Picks tools + arguments as validated JSON (never throws)
@@ -309,6 +320,9 @@ lib/
   llm.js               Provider abstraction + per-stage models, retries, deadlines
   knowledge.js         Prompts: lean lookup prompt + full-context fallback prompt
   kb.js                Loads/validates kb/kb.json (incl. the website-facing sections) and renders it as prompt text
+  site-content.js      kb.json -> what the page needs (whitelist) + safe inlining into index.html
+  projects.js          Project cards: validates public/data/projects.json, falls back to kb.json
+  credentials.js       Certificate validity + ordering, shared by the page and the assistant's tool
   kb-build.js          README cleaning + repo-link helpers for the KB sync
   kb-check.js          Drift check: KB vs live resume, snapshot staleness
   linkedin-import.js   LinkedIn export -> kb.json (allow-listed files/columns only)
@@ -325,6 +339,7 @@ lib/
   session.js           Server-owned chat sessions (cookie id, Redis memory, lock)
   ratelimit.js         Redis rate limits with hashed IPs + in-memory fallback
 kb/kb.json             Canonical content record (profile, about, experience, skills, education, credentials, facts, projects, LinkedIn)
+views/index.html       Page template. Deliberately NOT under public/, so no URL can serve it unprocessed
 scripts/
   sync-kb-projects.js  `npm run kb:sync` — refresh kb.json projects from GitHub
   import-linkedin.js   `npm run kb:linkedin` — import a LinkedIn export
@@ -333,13 +348,12 @@ scripts/
   check-env.js         `npm run check:env [-- --live]` — is the configuration ready to deploy?
   eval-live.js         `npm run eval:live` — real-model evaluation with release gates
 public/
-  index.html
   css/{style,chat}.css
   js/
     config.js          Shared limits (server + client)
-    util.js            Shared escapeHtml / safeUrl / sanitizeHtml
-    data.js            Portfolio content (single source of truth)
-    render.js          Renders the page (project cards from data/projects.json)
+    util.js            Shared escapeHtml / safeUrl / boldText / splitName
+    layout.js          Section headings and layout choices (no facts)
+    render.js          Renders the page from the inlined site content
     script.js          Portfolio interactions/animations
     chat.js            "Ask about me" chat overlay (+ cached badge)
   data/
@@ -358,7 +372,7 @@ vercel.json            Vercel routing
 
 | Command | Needs keys? | What it checks |
 | --- | --- | --- |
-| `npm test` | no | ~350 offline tests: units, integration against a fake Upstash, the **golden set**, the failure matrix, observability. All model calls are stubbed. Runs on every push/PR in CI (Node 20 and 22). |
+| `npm test` | no | ~400 offline tests: units, integration against a fake Upstash, the **golden set**, the failure matrix, observability, the site content and the front end (rendering and XSS safety). All model calls are stubbed. Runs on every push/PR in CI (Node 20 and 22). |
 | `npm run check:env` | no | Environment variables and `kb.json`: what is missing or malformed. |
 | `npm run check:env -- --live` | yes | Also the real services: key accepted, every configured model still available (catches a **retired model**), Redis reachable, the resume doc fetchable and its sections found, the PDF export returning a real PDF, drift between the resume and `kb.json`. It always downloads the doc fresh (never the app's cached copy) and has no side effects. |
 | `npm run eval:live` | yes | The golden cases against the **real models** (about 15–20 min, paced for free-tier limits) with release gates. Also a manual/weekly GitHub workflow. |

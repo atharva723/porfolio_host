@@ -44,13 +44,17 @@ if (nav && hero) {
 //  Hero name typing animation
 // ===============================
 (function typeHeroName() {
-    const data = (window.portfolioData && window.portfolioData.hero) || {};
-    const firstName = data.firstName != null ? data.firstName : "Atharva ";
-    const lastName = data.lastName != null ? data.lastName : "Jadhav";
+    const profile = (window.siteContent && window.siteContent.profile) || {};
+    const split = window.PortfolioUtil && window.PortfolioUtil.splitName
+        ? window.PortfolioUtil.splitName(profile.name)
+        : { first: "", last: "" };
+    const firstName = split.first;
+    const lastName = split.last;
 
     const firstEl = document.getElementById("first-name");
     const lastEl = document.getElementById("last-name");
     if (!firstEl || !lastEl) return;
+    if (!firstName && !lastName) return; // content unavailable: nothing to type
 
     let i = 0;
     let j = 0;
@@ -266,16 +270,19 @@ function applySpotlight(cards) {
     });
 }
 
-// Non-project cards exist at load (rendered synchronously). Project cards load
-// asynchronously from data/projects.json, so they're wired up on the event below.
+// Every card exists when this script runs (render.js builds the page synchronously from the
+// inlined content). Project cards also get the stacked-deck effect and the spotlight glow.
 applySpotlight(document.querySelectorAll(
     '.skill-card, .experience-card, .stat-item, .contact-link, .cert-card'
 ));
 
-// Project cards are injected asynchronously by render.js. Once they exist,
-// (re)capture them for the stacked-deck scroll effect and add the spotlight glow.
-document.addEventListener('projects:rendered', () => {
+function onProjectsRendered() {
     stackCards = Array.from(document.querySelectorAll('.projects-stack .project-card'));
     updateProjectStack();
     applySpotlight(document.querySelectorAll('.projects-stack .project-card'));
-});
+}
+
+// render.js fires this event before this script has loaded, so run the setup once now
+// as well; the listener keeps working if the cards are ever re-rendered.
+document.addEventListener('projects:rendered', onProjectsRendered);
+onProjectsRendered();
