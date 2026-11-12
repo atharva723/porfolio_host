@@ -162,8 +162,14 @@ test("the verifier policy treats refusals, contact suggestions and 'not availabl
   const p = verify.policy();
   assert.match(p, /saying a detail is not available/i);
   assert.match(p, /suggesting contact/i);
-  assert.match(p, /resume_\*/);
-  assert.match(p, /wins over \[kb\] lines and linkedin_\* fields/);
+  assert.match(p, /Supporting detail is: \[resume\] lines, \[get_resume\] and \[get_linkedin_profile\] lines \(except fields named profile_\*\), and any field starting with resume_ or linkedin_/);
+  assert.match(p, /confirmed profile data, and it wins over supporting detail when they disagree/);
+  assert.match(p, /CONFLICTS: when his confirmed profile and supporting detail give DIFFERENT values for the same fact/);
+  assert.match(p, /only the confirmed profile's value is supported/);
+  assert.match(p, /states the supporting detail's value is NOT supported/);
+  assert.match(p, /self_rated_level/);
+  assert.match(p, /presents it as self-rated/);
+  assert.match(p, /"he is an advanced Python developer"[^.]*is NOT supported/, "a level stated as fact is rejected");
   assert.match(p, /send messages, book meetings/);
 });
 

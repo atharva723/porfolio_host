@@ -8,10 +8,10 @@ recruiters ask questions and get answers grounded in the portfolio content.
   page; headings and layout live in `public/js/layout.js`.
 - **Backend:** small Node.js/Express app exposing `POST /api/chat` and the site
   content (`GET /` and `GET /data/site.json`).
-- **AI:** the assistant answers from the same knowledge base (`kb/kb.json`) plus
-  your **live resume** (a published Google Doc), injected into the system prompt
-  of a swappable LLM provider. The website and the assistant read the same record,
-  so they cannot disagree.
+- **AI:** the assistant answers from the same knowledge base (`kb/kb.json`), which
+  is its confirmed record, plus your **live resume** (a published Google Doc) and a
+  LinkedIn snapshot as supporting detail, through a swappable LLM provider. The
+  website and the assistant read the same record, so they cannot disagree.
 - **Caching:** identical questions reuse a stored answer (in-memory + optional
   Upstash Redis) to cut redundant LLM calls.
 - **Automation:** an n8n workflow keeps the project cards in sync with GitHub
@@ -277,18 +277,33 @@ a blank screen (`/api/health` reports the problem).
   skipped), and if the file is missing or unusable the GitHub-synced projects in
   `kb.json` are used instead.
 - **What the chat assistant knows** besides `kb.json`:
-  - **Resume** — edit your Google Doc; the assistant picks it up within an hour
-    (`RESUME_CACHE_SECONDS`), no redeploy. It is the source of truth for current
-    role, experience, skills and certifications. Phone numbers in the doc are
-    redacted before the model sees it.
+  - **Resume** and **LinkedIn snapshot** — supporting detail, never the authority.
+    Edit your Google Doc and the assistant picks it up within an hour
+    (`RESUME_CACHE_SECONDS`), no redeploy. It is what "summarise his resume" reads,
+    and it adds skills and project lines that `kb.json` doesn't list. Phone numbers
+    in the doc are redacted before the model sees it.
   - The system prompt includes `kb.json` and the resume, so both are part of the
     cache key: editing either one invalidates cached replies automatically.
+
+#### Which source wins
+
+| Question | Answered from | If another source disagrees |
+| --- | --- | --- |
+| Role, employer, dates, employment type, what he does | `kb.json` `experience` (+ `about`) | `kb.json` wins; the resume and LinkedIn are not even shown for these |
+| Skills and levels | `kb.json` `skills` first, then resume / LinkedIn as "also listed" | `kb.json` wins; a level is always described as **his own rating**, never an assessment |
+| Certifications, education, contact | `kb.json` | `kb.json` wins |
+| Projects | the website's project cards (`projects.json`) merged with GitHub details | the card list wins; GitHub's canonical repo link replaces a stale one |
+| "Summarise / read his resume" | the live resume document, shown together with his profile's current role and dates | it is a supporting document: where it differs from `kb.json`, `kb.json` is correct |
+
+So a visitor never sees the site say one thing and the assistant another. When the
+resume or LinkedIn disagrees with `kb.json`, `npm run kb:check` tells you, and you
+decide which is right and update it.
 
 ### Keeping the knowledge base current
 
 | What changed | What to do | Effort |
 | --- | --- | --- |
-| Resume (role, skills, certs) | Edit the Google Doc. | Live, nothing else |
+| Resume (extra skills, project lines, what "summarise his resume" shows) | Edit the Google Doc. Role, dates, skills and certifications that visitors see come from `kb.json`, not the resume. | Live, nothing else |
 | New certification / job / skill on LinkedIn | Download LinkedIn's **Basic** data export, extract it, run `npm run kb:linkedin -- "<folder>"`, review `git diff kb/kb.json`, commit. | About 2 min |
 | New or changed GitHub repo | `npm run kb:sync` (add `-- --dry` to preview). | 1 command |
 | "Is anything out of date?" | `npm run kb:check` — flags a LinkedIn snapshot older than 90 days and any difference between the live resume and the KB's certifications. | 1 command |
@@ -319,9 +334,10 @@ lib/
   messages.js          Fixed redirect / refusal / decline / "can't confirm" replies
   llm.js               Provider abstraction + per-stage models, retries, deadlines
   knowledge.js         Prompts: lean lookup prompt + full-context fallback prompt
-  kb.js                Loads/validates kb/kb.json (incl. the website-facing sections) and renders it as prompt text
-  site-content.js      kb.json -> what the page needs (whitelist) + safe inlining into index.html
+  kb.js                Loads/validates kb/kb.json, merges in the live project cards, renders it as prompt text
+  site-content.js      kb.json -> what the page needs (whitelist) + safe inlining into the page template
   projects.js          Project cards: validates public/data/projects.json, falls back to kb.json
+  icons.js             The one accepted Font Awesome class shape
   credentials.js       Certificate validity + ordering, shared by the page and the assistant's tool
   kb-build.js          README cleaning + repo-link helpers for the KB sync
   kb-check.js          Drift check: KB vs live resume, snapshot staleness
@@ -387,7 +403,7 @@ vercel.json            Vercel routing
 | `verify-cases.json` | **Answer accuracy**: supported answers vs invented certifications, employers, seniority, links, grades, dates, and capabilities. |
 | `e2e-cases.json` | The whole pipeline on real questions (answer / redirect / refusal / decline; no phone leak). |
 | `conversation-cases.json` | **Continuity**: follow-ups, an off-topic turn and an injection turn in the middle of a chat, then recovery. |
-| `poison-cases.json` | **Indirect injection**: instructions hidden inside the resume document must not be obeyed. |
+| `poison-cases.json` | **Indirect injection**: instructions hidden inside the resume document must not be obeyed. Each case must make the pipeline actually read the resume, or it fails as vacuous. |
 
 `test/golden.test.js` keeps the set honest on every run: well-formed files, every
 tool covered by retrieval and planning cases, the free regex pre-filter never
@@ -413,6 +429,12 @@ prompt, a model or a tool. Options: `npm run eval:live -- guard plan` (only some
 suites), `-- --report eval-report.json` (JSON report, git-ignored; the weekly
 workflow uploads it as an artifact), `-- --live-resume` (use the real document;
 the poison suite is skipped because it needs the poisoned fixture).
+
+A full run is large: every answer is checked by the verifier model, so it uses most
+of Groq's free-tier allowance for `openai/gpt-oss-120b` (200,000 tokens per day,
+about 8,000 per minute). Run the suites you changed, not everything, and don't
+repeat a full run within a day. When the allowance is gone, the evaluator stops
+with a "rate limit" error instead of reporting false failures.
 
 ### CI (GitHub Actions)
 

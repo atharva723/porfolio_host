@@ -135,50 +135,173 @@ test("get_projects works without the live resume", async () => {
 });
 
 /* ---- skills ---- */
-test("get_skills lists resume skills, the additional stack and LinkedIn skills", async () => {
+test("get_skills: his profile's skills come first, and every level is named as his own rating", async () => {
   const r = await run("get_skills");
-  assert.deepEqual(r.resume_skills, ["Python", "Agentic AI", "Copilot Studio"]);
-  assert.deepEqual(r.resume_additional_stack, ["FastAPI", "Ollama", "Docker", "Terraform"]);
-  assert.ok(r.linkedin_skills.includes("Terraform"));
+  const profile = kb().skills;
+  assert.deepEqual(r.skills.map((s) => s.name), profile.map((s) => s.name), "exactly the skills the website shows, in order");
+  const python = r.skills.find((s) => s.name === "Python");
+  assert.equal(python.self_rated_level, "Advanced");
+  assert.equal("level" in python, false, "the field name itself says the level is self-rated");
+  assert.equal(r.skills.find((s) => s.name === "Agentic AI").self_rated_level, undefined, "no level is invented for a skill without one");
+  assert.match(r.note, /his own rating of himself, not an assessment/);
   assert.equal(r.resume_available, true);
 });
 
-test("get_skills answers 'does he know X' definitively", async () => {
+test("get_skills: the resume and LinkedIn only add what the profile does not already list", async () => {
+  const r = await run("get_skills");
+  assert.deepEqual(r.resume_other_skills, ["FastAPI", "Ollama"], "Docker and Terraform are already in the profile");
+  const known = new Set(kb().skills.map((s) => s.name.toLowerCase()));
+  for (const s of [...r.resume_other_skills, ...r.linkedin_other_skills]) assert.ok(!known.has(s.toLowerCase()), `${s} is not a duplicate of a profile skill`);
+  assert.ok(r.linkedin_other_skills.includes("Machine Learning"));
+  assert.ok(!r.linkedin_other_skills.includes("Terraform") && !r.linkedin_other_skills.includes("FastAPI"));
+});
+
+test("get_skills answers 'does he know X' definitively, naming where it is listed", async () => {
   const yes = await run("get_skills", { query: "terraform" });
   assert.equal(yes.listed, true);
-  assert.deepEqual(yes.matches_in_resume, ["Terraform"]);
-  assert.deepEqual(yes.matches_in_linkedin, ["Terraform"]);
+  assert.deepEqual(yes.matches_in_profile, [{ name: "Terraform", self_rated_level: "Intermediate" }]);
+  assert.deepEqual(yes.resume_matches, ["Terraform"]);
+  assert.deepEqual(yes.linkedin_matches, ["Terraform"]);
   assert.equal(yes.note, undefined);
-  assert.equal(yes.resume_skills, undefined, "only the answer, not every list (token cost)");
+  assert.equal(yes.related_skills, undefined);
+  assert.equal(yes.skills, undefined, "only the answer, not every list (token cost)");
 
   const no = await run("get_skills", { query: "Rust" });
   assert.equal(no.listed, false);
-  assert.match(no.note, /"Rust" is not listed in his resume or LinkedIn skills/);
+  assert.match(no.note, /^"Rust" is not listed in his profile, resume or LinkedIn skills\.$/);
 });
 
-test("get_skills still answers from LinkedIn when the resume is unavailable", async () => {
-  const r = await run("get_skills", { query: "terraform" }, ctx({ getResume: async () => ({ available: false }) }));
+test("get_skills: a skill is listed when his profile has it, even if the resume and LinkedIn do not (the profile is the record)", async () => {
+  const r = await run("get_skills", { query: "Power Platform" });
+  assert.equal(r.listed, true);
+  assert.deepEqual(r.matches_in_profile, [{ name: "Power Platform" }]);
+  assert.deepEqual(r.resume_matches, []);
+  assert.deepEqual(r.linkedin_matches, []);
+});
+
+test("get_skills: a skill only the resume lists is still reported, as resume-only", async () => {
+  const r = await run("get_skills", { query: "fastapi" });
+  assert.equal(r.listed, true);
+  assert.deepEqual(r.matches_in_profile, []);
+  assert.deepEqual(r.resume_matches, ["FastAPI"]);
+});
+
+test("get_skills matches WHOLE WORDS: 'GitLab' is not 'Git', 'R' is not every skill, 'LLM' is 'LLMs'", async () => {
+  const gitlab = await run("get_skills", { query: "GitLab" });
+  assert.equal(gitlab.listed, false, "GitLab is not listed just because Git is");
+  assert.deepEqual(gitlab.matches_in_profile, []);
+
+  const r = await run("get_skills", { query: "R" });
+  assert.equal(r.listed, false, "a one-letter query must not match Docker, Terraform, ...");
+  assert.deepEqual([r.matches_in_profile, r.resume_matches, r.linkedin_matches], [[], [], []]);
+
+  const git = await run("get_skills", { query: "git" });
+  assert.deepEqual(git.matches_in_profile, [{ name: "Git", self_rated_level: "Advanced" }], "an exact skill still matches");
+  assert.ok(!JSON.stringify(git.matches_in_profile).includes("GitHub Copilot"), "'git' is not 'GitHub'");
+
+  const llm = await run("get_skills", { query: "LLM" });
+  assert.equal(llm.listed, true);
+  assert.ok(llm.matches_in_profile.some((s) => s.name === "LLMs / RAG"), "plural and word order: LLMs / RAG");
+  assert.equal((await run("get_skills", { query: "RAG" })).matches_in_profile[0].name, "LLMs / RAG");
+  assert.equal((await run("get_skills", { query: "devops" })).matches_in_profile[0].name, "Azure DevOps", "a word inside a listed skill");
+});
+
+test("get_skills: a broader listed skill inside the query is 'related', never a match", async () => {
+  const r = await run("get_skills", { query: "Azure Kubernetes Service" });
+  assert.equal(r.listed, false, "he lists Azure, not Azure Kubernetes Service");
+  assert.deepEqual(r.matches_in_profile, []);
+  assert.ok(r.related_skills.includes("Azure"));
+  assert.match(r.note, /^"Azure Kubernetes Service" is not listed in his profile, resume or LinkedIn skills\. Related skills he does list: .*Azure/);
+});
+
+test("get_skills answers from his profile and LinkedIn when the resume is unavailable, and says the resume was not checked", async () => {
+  const down = ctx({ getResume: async () => ({ available: false }) });
+  const r = await run("get_skills", { query: "terraform" }, down);
   assert.equal(r.resume_available, false);
   assert.equal(r.listed, true);
-  assert.deepEqual(r.matches_in_resume, []);
+  assert.equal(r.matches_in_profile.length, 1);
+  assert.deepEqual(r.resume_matches, []);
+
+  const miss = await run("get_skills", { query: "FastAPI" }, down);
+  assert.equal(miss.listed, false, "FastAPI is only in the resume, which could not be read");
+  assert.match(miss.note, /not listed in his profile or LinkedIn skills \(the resume could not be checked right now\)/);
+  assert.ok(!/profile, resume or LinkedIn/.test(miss.note), "it must not claim the resume was checked");
+
+  const all = await run("get_skills", {}, down);
+  assert.equal(all.skills.length, kb().skills.length, "the profile list does not need the resume");
+  assert.deepEqual(all.resume_other_skills, []);
+});
+
+test("PROVENANCE CONTRACT: fields starting resume_ or linkedin_ are supporting detail, and nothing else is named that way", async () => {
+  const outputs = {
+    get_experience: await run("get_experience"),
+    get_skills: await run("get_skills"),
+    "get_skills(q)": await run("get_skills", { query: "terraform" }),
+    get_projects: await run("get_projects"),
+    get_certifications: await run("get_certifications"),
+    get_education: await run("get_education"),
+    get_contact_info: await run("get_contact_info"),
+    get_resume: await run("get_resume"),
+    get_linkedin_profile: await run("get_linkedin_profile"),
+  };
+  for (const [tool, out] of Object.entries(outputs)) {
+    for (const key of Object.keys(out)) {
+      if (/resume|linkedin/i.test(key)) {
+        const allowed = /^(resume|linkedin)_/.test(key) || (tool === "get_contact_info" && key === "linkedin") || key === "profile_url";
+        assert.ok(allowed, `${tool}.${key} mentions resume/linkedin but is not prefixed resume_/linkedin_`);
+      }
+    }
+  }
+  // The profile's own facts never wear the supporting-detail prefix.
+  for (const tool of ["get_experience", "get_education", "get_contact_info"]) {
+    assert.ok(Object.keys(outputs[tool]).every((k) => !/^(resume|linkedin)_/.test(k)), `${tool} holds profile data only`);
+  }
+  assert.ok("profile_current_role" in outputs.get_resume, "the resume tool carries the profile's role so a resume-only turn can resolve a disagreement");
+  assert.ok(!/resume|linkedin/i.test("profile_current_role"));
+  assert.match(outputs.get_resume.profile_current_role, /LTIMindtree — Full-time, January 2026 – present\. Project: .*\(since April 2026\)/);
+  assert.match(outputs.get_resume.note, /profile data is correct/);
+});
+
+test("get_skills: a profile without any level carries no self-rating note", async () => {
+  const k = kb();
+  k.skills.forEach((s) => delete s.level);
+  const r = await run("get_skills", {}, ctx({ kb: k }));
+  assert.equal(r.note, undefined);
+  assert.ok(r.skills.every((s) => !("self_rated_level" in s)));
 });
 
 /* ---- experience ---- */
-test("get_experience combines the live resume, the employment timeline and the LinkedIn snapshot", async () => {
+test("get_experience is his confirmed record: role, type, dates, project and responsibilities", async () => {
   const r = await run("get_experience");
-  assert.match(r.resume_summary, /Engineer at LTIMindtree/);
-  assert.match(r.resume_experience, /Apr 2026 – Present/);
-  assert.deepEqual(r.timeline, ["Atharva joined LTIMindtree full-time in January 2026. His work as an AI engineer on the Microsoft project (Agentic Factory Operations) began in April 2026."]);
-  assert.equal(r.linkedin_positions[0].company, "LTIMindtree");
-  assert.equal(r.linkedin_positions[0].ended, "present");
-  assert.equal(r.linkedin_snapshot_as_of, kb().linkedin.asOf);
+  assert.deepEqual(r.roles, ["Engineer, Cloud & Infra Management at LTIMindtree — Full-time, January 2026 – present. Project: Microsoft Project: Agentic Factory Operations (since April 2026)"]);
+  assert.deepEqual(r.responsibilities, kb().experience[0].points, "the same bullets the website shows");
+  assert.equal(r.about_in_his_words.length, kb().about.paragraphs.length);
+  assert.ok(r.about_in_his_words.every((p) => !p.includes("**")), "no markup characters reach the model");
 });
 
-test("get_experience degrades gracefully without the resume", async () => {
-  const r = await run("get_experience", {}, ctx({ getResume: async () => ({ available: false }) }));
-  assert.equal(r.resume_available, false);
-  assert.equal(r.resume_experience, undefined);
-  assert.ok(r.timeline.length === 1 && r.linkedin_positions.length === 1);
+test("get_experience never mixes in the resume or LinkedIn, so two versions of a date cannot reach an answer", async () => {
+  const r = await run("get_experience");
+  assert.deepEqual(Object.keys(r).sort(), ["about_in_his_words", "responsibilities", "roles"]);
+  const text = JSON.stringify(r);
+  assert.ok(!/Apr 2026 – Present/.test(text), "the resume's own wording of the start date is not in it");
+  assert.ok(!/Engineer - Cloud & Infra/.test(text), "nor is LinkedIn's wording of the title");
+});
+
+test("get_experience does not depend on the live resume", async () => {
+  const withResume = await run("get_experience");
+  const without = await run("get_experience", {}, ctx({ getResume: async () => ({ available: false }) }));
+  assert.deepEqual(without, withResume);
+});
+
+test("get_experience with several roles: newest first, an ended role says when, responsibilities name the company", async () => {
+  const k = kb();
+  k.experience.push({ id: "exp-old", source: "owner", updated: "2026-11-04", role: "Intern", company: "Acme", started: "Jun 2025", ended: "Dec 2025", points: ["Fixed bugs."] });
+  const r = await run("get_experience", {}, ctx({ kb: k }));
+  assert.equal(r.roles.length, 2);
+  assert.match(r.roles[0], /LTIMindtree — Full-time, January 2026 – present/);
+  assert.equal(r.roles[1], "Intern at Acme — June 2025 – December 2025");
+  assert.ok(r.responsibilities.includes("Acme: Fixed bugs."));
+  assert.ok(r.responsibilities.every((l) => l.startsWith("LTIMindtree: ") || l.startsWith("Acme: ")));
 });
 
 /* ---- contact ---- */

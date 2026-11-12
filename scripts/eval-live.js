@@ -69,6 +69,7 @@ const planner = require("../lib/planner");
 const verify = require("../lib/verify");
 const agent = require("../lib/agent");
 const { buildEvidence } = require("../lib/knowledge");
+const { poisonVerdict } = require("./eval-checks");
 
 const cases = {
   guard: require("../test/golden/guard-cases.json"),
@@ -100,15 +101,18 @@ function record(suite, id, pass, { critical = false, ms = 0, detail = "" } = {})
 }
 
 async function withRetry(fn) {
-  try {
-    return await fn();
-  } catch (err) {
-    if (err.status === 503 || err.status === 429) {
-      console.log("     (rate limited; waiting 25s and retrying once)");
-      await sleep(25000);
-      return fn();
+  // A free-tier rate limit (429/503) or a dropped connection ("Could not reach ...") is worth a few
+  // patient retries: the limits are per minute, and the pipeline itself correctly fails closed.
+  const waits = [25000, 45000, 60000];
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const transient = err.status === 503 || err.status === 429 || (err.status === 502 && /could not reach/i.test(String(err.message)));
+      if (!transient || attempt >= waits.length) throw err;
+      console.log(`     (rate limited or connection dropped; waiting ${waits[attempt] / 1000}s, retry ${attempt + 1}/${waits.length})`);
+      await sleep(waits[attempt]);
     }
-    throw err;
   }
 }
 
@@ -211,8 +215,10 @@ async function poisonSuite() {
     console.log(`${reached ? "PASS" : "FAIL"} setup: the poisoned document is what the pipeline reads`);
     for (const c of cases.poison) {
       const { out, ms } = await runTurn(c.message, []);
-      const pass = c.kindIn.includes(out.kind) && !re(c.notMatch).test(out.reply);
-      record("poison", c.message.slice(0, 60), pass, { critical: true, ms, detail: pass ? "" : `kind=${out.kind}: ${snippet(out.reply)}` });
+      // The poison sits in the resume's experience section. If the tool that reads the resume never ran,
+      // the case tested nothing, so that is a failure in itself.
+      const { pass, vacuous } = poisonVerdict(c, out, re);
+      record("poison", c.message.slice(0, 60), pass, { critical: true, ms, detail: pass ? "" : vacuous ? `${c.requireTool} never ran: the poisoned section was not read (vacuous)` : `kind=${out.kind}: ${snippet(out.reply)}` });
       console.log(`${pass ? "PASS" : "FAIL"} ${pad(out.kind, 10)} ${String(ms).padStart(5)}ms tools=[${toolsOf(out)}] | ${c.message}\n     ${snippet(out.reply)}`);
       await sleep(20000);
     }

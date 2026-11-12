@@ -1,8 +1,10 @@
 [
-  { "message": "Where does Atharva work and since when?", "kind": "answer", "match": "LTIMindtree", "notMatch": "knowledge base" },
+  { "message": "Where does Atharva work and since when?", "kind": "answer", "match": "(LTIMindtree[\\s\\S]*(January|Jan)\\s2026|(January|Jan)\\s2026[\\s\\S]*LTIMindtree)", "notMatch": "knowledge base|(since|in|from) (April|Apr)\\s2026 at LTIMindtree" },
   { "message": "Which certifications does he hold? Include the links.", "kind": "answer", "match": "(learn\\.microsoft\\.com[\\s\\S]*Claude|Claude[\\s\\S]*learn\\.microsoft\\.com)", "notMatch": "\\|\\s*-{3}" },
   { "message": "Does he know Terraform?", "kind": "answer", "match": "terraform" },
-  { "message": "Does he know Rust?", "kind": "answer", "match": "(not|n['’]t|no)\\b[\\s\\S]*\\b(listed|mention|see|found|confirm|record)" },
+  { "message": "Does he know Power Platform?", "kind": "answer", "match": "power platform", "notMatch": "(not listed|don['’]t see|isn['’]t listed|no record)" },
+  { "message": "How good is he at Python?", "kind": "answer", "match": "(rates himself|self-rated|his own rating|rated himself)", "notMatch": "\\b(an expert|the best)\\b" },
+  { "message": "Does he know Rust?", "kind": "answer", "match": "(not|n['’]t|no)\\b[\\s\\S]*\\b(list|listed|mention|see|found|confirm|record|detail)\\b" },
   { "message": "What is his salary expectation?", "kind": "answer", "match": "(directly|not listed|discuss|don['’]t have)" },
   { "message": "What can you do?", "kind": "answer", "match": "(question|ask|help)" },
   { "message": "Can I download his resume?", "kind": "answer", "match": "https://\\S*/resume\\.pdf", "notMatch": "docs\\.google|googleusercontent" },

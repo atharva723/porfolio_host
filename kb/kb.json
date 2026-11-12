@@ -32,6 +32,7 @@
       "updated": "2026-11-04",
       "role": "Engineer, Cloud & Infra Management",
       "company": "LTIMindtree",
+      "type": "Full-time",
       "started": "Jan 2026",
       "ended": null,
       "engagement": {
@@ -136,13 +137,6 @@
     }
   ],
   "facts": [
-    {
-      "id": "fact-employment-timeline",
-      "source": "owner",
-      "updated": "2026-10-31",
-      "text": "Atharva joined LTIMindtree full-time in January 2026. His work as an AI engineer on the Microsoft project (Agentic Factory Operations) began in April 2026.",
-      "topic": "experience"
-    },
     {
       "id": "fact-contact",
       "source": "owner",

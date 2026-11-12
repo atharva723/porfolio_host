@@ -20,26 +20,33 @@ test("prompt is built from kb.json: education and certification links are presen
   assert.match(prompt, /learn\.microsoft\.com\/api\/credentials\/share/);
 });
 
-test("the live resume is included and declared the source of truth", () => {
+test("the live resume is included as supporting detail, and the knowledge base is declared the confirmed record", () => {
   const prompt = buildSystemPrompt({ resume: RESUME });
-  assert.match(prompt, /=== RESUME \(live document/);
+  assert.match(prompt, /=== RESUME \(live document — supporting detail; the KNOWLEDGE BASE is his confirmed record\) ===/);
   assert.match(prompt, /Azure AI Fundamentals \(Exam AI-901\)/);
-  assert.match(prompt, /RESUME is correct/);
+  assert.match(prompt, /the KNOWLEDGE BASE is his confirmed record and is correct; the resume only adds detail/);
+  assert.ok(!/RESUME is correct/.test(prompt), "the old 'resume wins' rule is gone");
+  assert.ok(!/source of truth/.test(prompt));
 });
 
 test("when the resume is unavailable the prompt says so instead of guessing", () => {
   for (const resume of [undefined, { available: false, reason: "unavailable" }]) {
     const prompt = buildSystemPrompt({ resume });
     assert.match(prompt, /live resume is temporarily unavailable/i);
+    assert.match(prompt, /Answer from the KNOWLEDGE BASE/);
     assert.ok(!/=== RESUME \(live document/.test(prompt));
     assert.equal(buildEvidence({ resume }).find((p) => p.label === "resume"), undefined);
   }
 });
 
-test("the stale website content (data.js) is no longer part of the prompt", () => {
+test("the prompt carries what the website says (the same record), and none of the old hard-coded site text", () => {
   const prompt = buildSystemPrompt({ resume: RESUME });
-  assert.ok(!/Building scalable cloud infrastructure with Azure/.test(prompt), "hero text from data.js");
-  assert.ok(!/Cloud Engineer – DevOps/.test(prompt), "old role from data.js");
+  assert.match(prompt, /I'm an AI & Agentic Automation Engineer at LTIMindtree/, "the about text the site shows");
+  assert.match(prompt, /Engineer, Cloud & Infra Management at LTIMindtree — Full-time, January 2026 – present/, "the role the site shows");
+  assert.match(prompt, /Python \(Advanced, self-rated\)/, "the skills the site shows, with levels named as self-rated");
+  assert.ok(!/Building scalable cloud infrastructure with Azure/.test(prompt), "hero text from the old data.js");
+  assert.ok(!/Cloud Engineer – DevOps/.test(prompt), "old role from the old data.js");
+  assert.ok(!/atharva\.jadhav968/.test(prompt), "the old mistyped e-mail address");
   assert.ok(!/<!--/.test(prompt));
 });
 
@@ -125,7 +132,18 @@ test("lookup prompt carries the profile card and each tool's results under its n
   assert.match(prompt, /PROFILE: Atharva Jadhav — AI & Agentic Automation Engineer at LTIMindtree, based in Mumbai, India\./);
   assert.match(prompt, /## get_certifications\ntotal_held: 4/);
   assert.match(prompt, /## get_skills\(\{"query":"Rust"\}\)\nlisted: false/);
-  assert.match(prompt, /fields named resume_\*/);
+  assert.match(prompt, /If results disagree, use his profile data\./);
+  assert.match(prompt, /Supporting detail is everything under get_resume or get_linkedin_profile \(except fields named profile_\*\) and any field starting with resume_ or linkedin_/);
+  assert.match(prompt, /Everything else is his confirmed profile data and is correct/);
+  assert.ok(!/is correct over LinkedIn/.test(prompt), "the old 'resume wins' rule is gone");
+});
+
+test("both prompts tell the model a skill level is HIS OWN rating, never an assessment", () => {
+  for (const prompt of [buildAnswerPrompt({ lookups: LOOKUPS }), buildSystemPrompt({ resume: RESUME })]) {
+    assert.match(prompt, /A skill level \(a self_rated_level field, or "self-rated"\) is HIS OWN rating of himself/);
+    assert.match(prompt, /he rates himself Advanced in Python/);
+    assert.match(prompt, /never present it as an independent assessment/);
+  }
 });
 
 test("the profile card always carries the contact channels (so 'ask him directly' is actionable and grounded), never a phone", () => {
@@ -148,6 +166,12 @@ test("lookup prompt with no lookups tells the model to answer directly or admit 
   assert.match(prompt, /No lookup was needed or run for this message/);
   assert.match(prompt, /say you don't have that detail/);
   assert.equal(buildAnswerPrompt(), buildAnswerPrompt({ lookups: [] }), "stable (used in the cache key)");
+});
+
+test("a definite 'not listed' result is answered plainly, not as a gap in the assistant's knowledge", () => {
+  const prompt = buildAnswerPrompt({ lookups: LOOKUPS });
+  assert.match(prompt, /When a lookup positively reports that something is not listed \(for example listed: false\), say plainly that it is not listed in his profile/);
+  assert.match(prompt, /say you don't have that detail/, "the generic unknown rule is still there for real gaps");
 });
 
 test("lookup results cannot break out of their delimiters", () => {

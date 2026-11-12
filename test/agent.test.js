@@ -173,7 +173,7 @@ test("context-mode verification checks against the KB (a relevant excerpt of it,
   stub.plan = () => "garbage";
   await ask("Where does he work?");
   const sources = /<sources>([\s\S]*?)<\/sources>/.exec(stub.calls.find((c) => c.purpose === "verify").messages[0].content)[1];
-  assert.match(sources, /\[kb\] .*joined LTIMindtree full-time in January 2026/);
+  assert.match(sources, /\[kb\] .*Full-time, January 2026 – present/);
 });
 
 /* ---- cache ---- */
@@ -198,7 +198,7 @@ test("the cache key changes when the KB or the resume changes", () => {
   assert.notEqual(a, agent.dataFingerprint({ available: true, text: "resume two" }));
   assert.notEqual(a, agent.dataFingerprint({ available: false }));
   assert.equal(a, agent.dataFingerprint({ available: true, text: "resume one" }));
-  assert.match(agent.CACHE_VERSION, /^chat-v3\|plan-v3\|guard-v\d+\|verify-v\d+$/);
+  assert.match(agent.CACHE_VERSION, /^chat-v4\|plan-v4\|guard-v\d+\|verify-v3$/);
 });
 
 test("a corrupt or old-format cache entry is treated as a miss, not a crash", async () => {

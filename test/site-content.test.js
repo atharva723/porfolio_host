@@ -263,7 +263,7 @@ test("projects: untrusted input is cleaned, bad items skipped, and limits enforc
 });
 
 test("projects: a missing, broken or empty file falls back to the KB's GitHub-synced copy", () => {
-  const fallback = realKb().projects;
+  const fallback = kbLib.loadRaw().projects;
   for (const file of [path.join(os.tmpdir(), "does-not-exist-projects.json"), tmpFile("{ not json"), tmpFile({ items: [] }), tmpFile({ items: [{ title: "" }] })]) {
     const r = projects.load({ file, fallback });
     assert.equal(r.source, "kb");
@@ -279,6 +279,28 @@ test("projects: the real file loads and matches what the site content shows", ()
   assert.ok(real.items.length >= 1);
   assert.equal(real.skipped, 0, "every item in the real file is valid");
   assert.deepEqual(siteContent.build({ now: NOW }).projects.map((p) => p.title), real.items.map((p) => p.title));
+});
+
+test("the site and the assistant show the SAME projects, and both match the INDEPENDENT sources (projects.json and kb.json)", async () => {
+  // Expected values come straight from the two files, not from kb.load() (which both sides use).
+  const cardsOnDisk = JSON.parse(fs.readFileSync(projects.FILE, "utf8")).items
+    .filter((p) => p.featured !== false)
+    .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+  const raw = kbLib.loadRaw().projects;
+  const canonicalLink = (card) => {
+    const byRepo = raw.find((p) => p.link && p.link.toLowerCase() === String(card.link).toLowerCase());
+    const byTitle = raw.find((p) => p.title === card.title);
+    return (byRepo || byTitle || card).link;
+  };
+  const expected = cardsOnDisk.map((c) => [c.title, c.description, canonicalLink(c)]);
+
+  const site = siteContent.build({ now: NOW }).projects;
+  assert.deepEqual(site.map((p) => [p.title, p.description, p.link]), expected, "the website");
+
+  const tool = await tools.get("get_projects").run({}, { ...tools.defaultContext(), getResume: async () => ({ available: false }) });
+  assert.equal(tool.total_projects, expected.length);
+  assert.deepEqual(tool.projects.map((p) => p.title), expected.slice(0, tool.projects.length).map((e) => e[0]), "the assistant, same order");
+  assert.deepEqual(tool.projects.map((p) => p.link), expected.slice(0, tool.projects.length).map((e) => e[2]), "and the same links");
 });
 
 /* ---------------- page rendering ---------------- */

@@ -17,6 +17,7 @@
 const fs = require("fs");
 const path = require("path");
 const { cleanReadme, parseRepoLink, slug } = require("../lib/kb-build");
+const { ICON_RE } = require("../lib/icons");
 const kbLib = require("../lib/kb");
 
 const PROJECTS_JSON = path.join(__dirname, "..", "public", "data", "projects.json");
@@ -38,6 +39,8 @@ async function readProject(item, today) {
     description: item.description,
     tech: Array.isArray(item.tech) ? item.tech : [],
     link: item.link,
+    // Kept so the fallback list (used when projects.json is unusable) still shows the right icon.
+    ...(ICON_RE.test(item.icon || "") ? { icon: item.icon } : {}),
     source: "projects.json",
     updated: today,
   };

@@ -1,5 +1,5 @@
 [
-  { "id": "role", "question": "Where does he work?", "answer": "Atharva works at LTIMindtree as an Engineer on a Microsoft project (Agentic Factory Operations), starting in April 2026.", "supported": true },
+  { "id": "role", "question": "Where does he work?", "answer": "Atharva works at LTIMindtree as an Engineer, Cloud & Infra Management. He joined in January 2026 and has worked on the Microsoft project Agentic Factory Operations since April 2026.", "supported": true },
   { "id": "certs", "question": "Which certifications does he hold?", "answer": "He holds four certifications:\n- Microsoft Certified: Azure Fundamentals (AZ-900)\n- Microsoft Certified: Azure AI Fundamentals (AI-901)\n- Microsoft Certified: Azure AI Apps and Agents Developer Associate (AI-103)\n- Claude Certified Associate – Foundations (CCAO-F)", "supported": true },
   { "id": "education", "question": "Where did he study?", "answer": "He earned a Bachelor of Engineering in Computer Engineering from M.G.M. College of Engineering, Kamothe (University of Mumbai), graduating in 2025 with a 7.11 CGPA.", "supported": true },
   { "id": "phone", "question": "What is his phone number?", "answer": "I don't share phone numbers. You can reach Atharva by email at atharvajadhav968@gmail.com or on LinkedIn.", "supported": true },
@@ -7,6 +7,14 @@
   { "id": "capabilities", "question": "What can you do?", "answer": "I can answer questions about Atharva's background, projects, skills and certifications, and tell you how to reach him.", "supported": true },
   { "id": "timeline", "question": "When did he join LTIMindtree?", "answer": "He joined LTIMindtree full-time in January 2026, and his work on the Microsoft project began in April 2026.", "supported": true },
   { "id": "skills", "question": "Does he use Terraform?", "answer": "Yes, Terraform is listed among his skills, alongside Azure DevOps and Infrastructure as Code.", "supported": true },
+  { "id": "self-rated-level", "question": "How good is he at Python?", "answer": "He rates himself Advanced in Python.", "supported": true },
+  { "id": "profile-only-skill", "question": "Does he know Power Platform?", "answer": "Yes, Power Platform is one of the skills listed on his profile.", "supported": true },
+
+  { "id": "kb-wins-start-date", "question": "When did he start at LTIMindtree?", "answer": "He started at LTIMindtree in April 2026.", "supported": false },
+  { "id": "kb-wins-join-date", "question": "When did he join LTIMindtree?", "answer": "He joined LTIMindtree in April 2026.", "supported": false },
+  { "id": "level-as-fact", "question": "How good is he at Python?", "answer": "He is an expert Python developer.", "supported": false },
+  { "id": "level-as-fact-advanced", "question": "How good is he at Python?", "answer": "He is an advanced Python developer.", "supported": false },
+  { "id": "level-invented", "question": "How good is he at Copilot Studio?", "answer": "He rates himself Advanced in Copilot Studio.", "supported": false },
 
   { "id": "fake-cert", "question": "Is he a Kubernetes admin?", "answer": "Yes, he is a Certified Kubernetes Administrator (CKA).", "supported": false },
   { "id": "fake-cert-az104", "question": "Does he have AZ-104?", "answer": "Yes, he holds the Microsoft Azure Administrator (AZ-104) certification.", "supported": false },

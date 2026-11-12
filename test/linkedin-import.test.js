@@ -202,11 +202,11 @@ test("committed KB lists the four certifications, each with a verify link", () =
   assert.ok(!kbLib.load().credentials.some((c) => /forage|tata/i.test(c.title)), "Forage simulation excluded");
 });
 
-test("KB text exposes the employment timeline and LinkedIn snapshot with its date", () => {
+test("KB text exposes the employment dates and the LinkedIn snapshot with its date", () => {
   const text = kbLib.toText();
-  assert.match(text, /joined LTIMindtree full-time in January 2026/);
-  assert.match(text, /April 2026/);
-  assert.match(text, /LinkedIn profile snapshot \(as of \d{4}-\d{2}-\d{2}; the live resume wins/);
+  assert.match(text, /Full-time, January 2026 – present/);
+  assert.match(text, /since April 2026/);
+  assert.match(text, /LinkedIn profile snapshot \(as of \d{4}-\d{2}-\d{2}; it can lag, and the profile above wins/);
   assert.match(text, /Skills listed on LinkedIn:.*Terraform/);
   assert.match(text, /studied 2021–2025/);
   assert.match(text, /valid until Oct 2027/);
@@ -240,7 +240,7 @@ test("checkKb warns about a resume certification missing from the KB, and the re
 
   const trimmed = RESUME.replace(/- Claude.*\n/, "");
   const removed = checkKb({ kb: kbLib.load(), resumeText: trimmed, now });
-  assert.ok(removed.some((f) => f.level === "warn" && /Claude Certified Associate/.test(f.message) && /resume wins/i.test(f.message)));
+  assert.ok(removed.some((f) => f.level === "warn" && /Claude Certified Associate/.test(f.message) && /kb\.json wins/i.test(f.message)));
 });
 
 test("checkKb flags a stale LinkedIn snapshot and tolerates a missing resume", () => {
