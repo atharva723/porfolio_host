@@ -263,14 +263,18 @@ test("projects: untrusted input is cleaned, bad items skipped, and limits enforc
 });
 
 test("projects: a missing, broken or empty file falls back to the KB's GitHub-synced copy", () => {
-  const fallback = kbLib.loadRaw().projects;
+  const synced = kbLib.loadRaw().projects;
+  // kb:sync keeps each project's icon so the fallback list looks right; an entry without one gets the default.
+  const fallback = [{ ...synced[0], icon: "fab fa-python" }, { ...synced[1], icon: undefined }];
   for (const file of [path.join(os.tmpdir(), "does-not-exist-projects.json"), tmpFile("{ not json"), tmpFile({ items: [] }), tmpFile({ items: [{ title: "" }] })]) {
     const r = projects.load({ file, fallback });
     assert.equal(r.source, "kb");
     assert.equal(r.items.length, fallback.length);
     assert.equal(r.items[0].title, fallback[0].title);
-    assert.equal(r.items[0].icon, projects.DEFAULT_ICON);
+    assert.equal(r.items[0].icon, "fab fa-python", "the synced icon is kept");
+    assert.equal(r.items[1].icon, projects.DEFAULT_ICON, "no icon: the default");
   }
+  assert.ok(synced.every((p) => /^(fab|fas) fa-/.test(p.icon || "")), "every project in the committed kb.json carries the icon of its card");
 });
 
 test("projects: the real file loads and matches what the site content shows", () => {

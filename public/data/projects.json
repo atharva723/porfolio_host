@@ -30,10 +30,10 @@
       "link": "https://github.com/atharva723/Weather_Dashboard_Microservices-Architecture"
     },
     {
-      "repo": "CodeAuditor_copilot_CLI_agnet",
+      "repo": "CodeAuditor_copilot_CLI_agent",
       "order": 3,
       "featured": true,
-      "title": "Code Auditor Copilot CLI Agnet",
+      "title": "Code Auditor Copilot CLI Agent",
       "description": "This project provides a custom agent for CodeAudit to scan for security and production readiness issues in code repositories. It uses GitHub Copilot's capabilities to review code and identify areas for improvement, while also providing detailed reports on the findings.",
       "icon": "fab fa-python",
       "tech": [
@@ -41,7 +41,7 @@
         "Go",
         "Dockerfile"
       ],
-      "link": "https://github.com/atharva723/CodeAuditor_copilot_CLI_agnet"
+      "link": "https://github.com/atharva723/CodeAuditor_copilot_CLI_agent"
     },
     {
       "repo": "Clothing_store_full_stack_using_node",

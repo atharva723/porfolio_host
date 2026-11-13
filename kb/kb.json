@@ -50,19 +50,103 @@
     }
   ],
   "skills": [
-    { "id": "skill-python", "source": "owner", "updated": "2026-11-04", "name": "Python", "level": "Advanced", "icon": "fab fa-python" },
-    { "id": "skill-agentic-ai", "source": "resume", "updated": "2026-11-04", "name": "Agentic AI", "icon": "fas fa-robot" },
-    { "id": "skill-copilot-studio", "source": "resume", "updated": "2026-11-04", "name": "Copilot Studio", "icon": "fas fa-comments" },
-    { "id": "skill-power-platform", "source": "resume", "updated": "2026-11-04", "name": "Power Platform", "icon": "fas fa-diagram-project" },
-    { "id": "skill-llm-rag", "source": "resume", "updated": "2026-11-04", "name": "LLMs / RAG", "icon": "fas fa-wand-magic-sparkles" },
-    { "id": "skill-azure", "source": "resume", "updated": "2026-11-04", "name": "Azure", "icon": "fas fa-cloud" },
-    { "id": "skill-azure-ai", "source": "owner", "updated": "2026-11-04", "name": "Azure AI", "level": "Intermediate", "icon": "fas fa-brain" },
-    { "id": "skill-azure-devops", "source": "owner", "updated": "2026-11-04", "name": "Azure DevOps", "level": "Advanced", "icon": "fas fa-infinity" },
-    { "id": "skill-github-copilot", "source": "resume", "updated": "2026-11-04", "name": "GitHub Copilot", "icon": "fab fa-github" },
-    { "id": "skill-claude-code", "source": "resume", "updated": "2026-11-04", "name": "Claude Code", "icon": "fas fa-terminal" },
-    { "id": "skill-docker", "source": "owner", "updated": "2026-11-04", "name": "Docker", "level": "Advanced", "icon": "fab fa-docker" },
-    { "id": "skill-terraform", "source": "owner", "updated": "2026-11-04", "name": "Terraform", "level": "Intermediate", "icon": "fas fa-code" },
-    { "id": "skill-git", "source": "owner", "updated": "2026-11-04", "name": "Git", "level": "Advanced", "icon": "fab fa-git-alt" }
+    {
+      "id": "skill-python",
+      "source": "owner",
+      "updated": "2026-11-04",
+      "name": "Python",
+      "level": "Advanced",
+      "icon": "fab fa-python"
+    },
+    {
+      "id": "skill-agentic-ai",
+      "source": "resume",
+      "updated": "2026-11-04",
+      "name": "Agentic AI",
+      "icon": "fas fa-robot"
+    },
+    {
+      "id": "skill-copilot-studio",
+      "source": "resume",
+      "updated": "2026-11-04",
+      "name": "Copilot Studio",
+      "icon": "fas fa-comments"
+    },
+    {
+      "id": "skill-power-platform",
+      "source": "resume",
+      "updated": "2026-11-04",
+      "name": "Power Platform",
+      "icon": "fas fa-diagram-project"
+    },
+    {
+      "id": "skill-llm-rag",
+      "source": "resume",
+      "updated": "2026-11-04",
+      "name": "LLMs / RAG",
+      "icon": "fas fa-wand-magic-sparkles"
+    },
+    {
+      "id": "skill-azure",
+      "source": "resume",
+      "updated": "2026-11-04",
+      "name": "Azure",
+      "icon": "fas fa-cloud"
+    },
+    {
+      "id": "skill-azure-ai",
+      "source": "owner",
+      "updated": "2026-11-04",
+      "name": "Azure AI",
+      "level": "Intermediate",
+      "icon": "fas fa-brain"
+    },
+    {
+      "id": "skill-azure-devops",
+      "source": "owner",
+      "updated": "2026-11-04",
+      "name": "Azure DevOps",
+      "level": "Advanced",
+      "icon": "fas fa-infinity"
+    },
+    {
+      "id": "skill-github-copilot",
+      "source": "resume",
+      "updated": "2026-11-04",
+      "name": "GitHub Copilot",
+      "icon": "fab fa-github"
+    },
+    {
+      "id": "skill-claude-code",
+      "source": "resume",
+      "updated": "2026-11-04",
+      "name": "Claude Code",
+      "icon": "fas fa-terminal"
+    },
+    {
+      "id": "skill-docker",
+      "source": "owner",
+      "updated": "2026-11-04",
+      "name": "Docker",
+      "level": "Advanced",
+      "icon": "fab fa-docker"
+    },
+    {
+      "id": "skill-terraform",
+      "source": "owner",
+      "updated": "2026-11-04",
+      "name": "Terraform",
+      "level": "Intermediate",
+      "icon": "fas fa-code"
+    },
+    {
+      "id": "skill-git",
+      "source": "owner",
+      "updated": "2026-11-04",
+      "name": "Git",
+      "level": "Advanced",
+      "icon": "fab fa-git-alt"
+    }
   ],
   "education": [
     {
@@ -183,8 +267,9 @@
         "Python"
       ],
       "link": "https://github.com/atharva723/LTM_final_capstone",
+      "icon": "fab fa-python",
       "source": "github",
-      "updated": "2026-10-30",
+      "updated": "2026-11-13",
       "highlights": "Manufacturing Plant Monitoring & Diagnostics Assistant MAIA — Manufacturing AI Assistant An industrial AI assistant for plant operators, maintenance engineers, and shift supervisors. Built with Mistral + LangChain + FAISS RAG. Quick Start Project Structure API Endpoints ( Method Endpoint Description POST /api/v1/chat Main chat — full agent pipeline GET /api/v1/sensors All machine sensor readings GET /api/v1/sensors/{machine id} Single machine sensors POST /api/v1/fault Fault diagnosis GET /api/v1/parts Spare parts lookup POST /api/v1/maintenance PM schedule POST /api/v1/rag Knowledge base…"
     },
     {
@@ -199,14 +284,15 @@
         "JavaScript"
       ],
       "link": "https://github.com/atharva723/Weather_Dashboard_Microservices-Architecture",
+      "icon": "fab fa-css3-alt",
       "source": "github",
-      "updated": "2026-10-30",
+      "updated": "2026-11-13",
       "highlights": "🌤️ Weather Dashboard - Microservices Architecture A modern, full-stack weather application built with Flask microservices , featuring JWT authentication, real-time weather data, and a beautiful animated UI. 📸 Screenshots Landing Page Weather Dashboard Demo 🏗️ Architecture Overview This project implements a microservices architecture with three independent services: ✨ Features 🔐 Authentication Service - User registration and login - JWT token generation and validation - Secure password hashing (bcrypt) - Token blacklist for logout - Session management 🌍 Weather Service - Real-time weather…"
     },
     {
-      "id": "proj-codeauditor-copilot-cli-agnet",
+      "id": "proj-codeauditor-copilot-cli-agent",
       "repo": "CodeAuditor_copilot_CLI_agent",
-      "title": "Code Auditor Copilot CLI Agnet",
+      "title": "Code Auditor Copilot CLI Agent",
       "description": "This project provides a custom agent for CodeAudit to scan for security and production readiness issues in code repositories. It uses GitHub Copilot's capabilities to review code and identify areas for improvement, while also providing detailed reports on the findings.",
       "tech": [
         "Python",
@@ -214,8 +300,9 @@
         "Dockerfile"
       ],
       "link": "https://github.com/atharva723/CodeAuditor_copilot_CLI_agent",
+      "icon": "fab fa-python",
       "source": "github",
-      "updated": "2026-10-30",
+      "updated": "2026-11-13",
       "highlights": "CodeAudit Code reviewers you talk to in plain English. Open GitHub Copilot (CLI or VS Code), type \"review my code and find vulnerabilities\" for a security/readiness audit, or \"how can this code be improved?\" for a senior-engineer design review — then CodeAudit writes the right report for you. It works on any language or framework (Python, JavaScript, Go, Java, Ruby, …) and never changes your code — it only reads it and writes report files under evaluation/ . What it checks Area What it looks for 🔑 Secrets Hardcoded API keys, passwords, tokens, database URLs left in the code. 🛡️ Security &…"
     },
     {
@@ -229,8 +316,9 @@
         "HTML"
       ],
       "link": "https://github.com/atharva723/Clothing_store_full_stack_using_node",
+      "icon": "fab fa-css3-alt",
       "source": "github",
-      "updated": "2026-10-30",
+      "updated": "2026-11-13",
       "highlights": "🛍️ Clothing Store – Full-Stack Development Project This project is a full-stack clothing e-commerce application built using HTML, CSS, JavaScript, Node.js, Express, and SQLite during the development phase. The focus of this project is real-world application development , not just UI — including backend APIs, database design, cart logic, orders, and debugging real issues that arise when frontend and backend interact. 🚀 Project Overview The application simulates a real clothing brand website where users can: Browse products Select product sizes Add items to a cart View cart contents Checkout…"
     },
     {
@@ -244,8 +332,9 @@
         "Mako"
       ],
       "link": "https://github.com/atharva723/n8n_and_backend-LLM-DB-_Maps-agent",
+      "icon": "fab fa-python",
       "source": "github",
-      "updated": "2026-10-30"
+      "updated": "2026-11-13"
     },
     {
       "id": "proj-azure-apphost-ci-cd-pipeline",
@@ -258,8 +347,9 @@
         "JavaScript"
       ],
       "link": "https://github.com/atharva723/Azure_AppHost_CI_CD_Pipeline",
+      "icon": "fab fa-css3-alt",
       "source": "github",
-      "updated": "2026-10-30"
+      "updated": "2026-11-13"
     },
     {
       "id": "proj-multi-channel-support-system",
@@ -274,8 +364,10 @@
         "PowerShell"
       ],
       "link": "https://github.com/atharva723/multi-channel_support_system",
-      "source": "projects.json",
-      "updated": "2026-10-30"
+      "icon": "fab fa-python",
+      "source": "github",
+      "updated": "2026-11-13",
+      "highlights": "Omnichannel AI Support Sentinel A real-time, multi-tenant support-triage platform. It ingests support requests from Discord and Gmail , classifies criticality with a local LLM , computes dynamic SLA urgency, escalates critical tickets to a human-in-the-loop Expo mobile dashboard, and sends approved (or AI-auto) replies back through the original channel. Replies are grounded in each tenant's own knowledge base (RAG) so answers reflect the business's real info — and out-of-scope questions defer to a human. Multi-tenant SaaS: every user (account) connects their own channels via OAuth and only…"
     },
     {
       "id": "proj-movie-insight-using-react-flask",
@@ -291,8 +383,9 @@
         "HTML"
       ],
       "link": "https://github.com/atharva723/movie_insight_using_react_flask",
+      "icon": "fab fa-js",
       "source": "github",
-      "updated": "2026-10-30",
+      "updated": "2026-11-13",
       "highlights": "🎬 CinePlex AI-Powered Movie Discovery Platform with Semantic Recommendations Movie Insight is a modern web application that transforms movie discovery through artificial intelligence. Instead of traditional genre-based filtering, it uses Natural Language Processing to understand movie narratives and recommend films with similar stories, themes, and emotional tones. 🌟 Key Features Intelligent Search Search any movie from TMDB's extensive database with real-time results and rich metadata. AI-Driven Recommendations Advanced sentence embeddings analyze movie plots to suggest semantically…"
     }
   ],
