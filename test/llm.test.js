@@ -34,6 +34,61 @@ test.afterEach(() => {
 const guardCall = (extra = {}) => llm.complete({ purpose: "guard", system: "S", messages: [{ role: "user", content: "hi" }], ...extra });
 
 /* ---- model routing ---- */
+test("ollama is a local provider: its own URL, no key needed, one model for every stage, no Prompt Guard", async () => {
+  process.env.LLM_PROVIDER = "ollama";
+  const key = process.env.LLM_API_KEY;
+  delete process.env.LLM_API_KEY;
+  try {
+    for (const stage of ["main", "guard", "plan", "verify"]) assert.equal(llm.resolveModel(stage), "llama3.2", stage);
+    assert.equal(llm.resolveModel("promptguard"), null);
+    assert.equal(llm.hasCredentials(), true, "no key is needed");
+    process.env.LLM_MODEL = "gpt-oss:20b";
+    assert.equal(llm.resolveModel("verify"), "gpt-oss:20b", "LLM_MODEL changes every stage");
+
+    script.push(ok("hello"));
+    assert.equal(await guardCall(), "hello");
+    assert.equal(calls[0].url, "http://127.0.0.1:11434/v1/chat/completions");
+    assert.equal(calls[0].body.model, "gpt-oss:20b");
+    assert.equal(calls[0].body.reasoning_effort, undefined);
+  } finally {
+    delete process.env.LLM_PROVIDER;
+    delete process.env.LLM_MODEL;
+    process.env.LLM_API_KEY = key;
+  }
+});
+
+test("warmUp loads each distinct local model once, and does nothing for a hosted provider", async () => {
+  assert.deepEqual(await llm.warmUp(), [], "groq: nothing to load");
+  assert.equal(calls.length, 0);
+
+  process.env.LLM_PROVIDER = "ollama";
+  process.env.VERIFY_MODEL = "bigger";
+  try {
+    script.push(ok(""), ok(""));
+    assert.deepEqual(await llm.warmUp(), ["llama3.2", "bigger"]);
+    assert.deepEqual(calls.map((c) => c.body.model), ["llama3.2", "bigger"]);
+    assert.ok(calls.every((c) => c.url === "http://127.0.0.1:11434/v1/chat/completions" && c.body.max_tokens === 1));
+    script.push(fail(404, "model 'bigger' not found"));
+    script.push(ok(""));
+    await assert.rejects(llm.warmUp(), (e) => e.modelMissing === true && /not found/.test(e.message));
+  } finally {
+    delete process.env.LLM_PROVIDER;
+    delete process.env.VERIFY_MODEL;
+  }
+});
+
+test("a hosted provider still needs a key", async () => {
+  const key = process.env.LLM_API_KEY;
+  delete process.env.LLM_API_KEY;
+  try {
+    assert.equal(llm.hasCredentials("groq", {}), false);
+    assert.equal(llm.hasCredentials("ollama", {}), true);
+    await assert.rejects(guardCall(), (e) => e.status === 500 && /missing LLM_API_KEY/.test(e.message));
+  } finally {
+    process.env.LLM_API_KEY = key;
+  }
+});
+
 test("each stage resolves to its own model by default (separate Groq rate-limit buckets)", () => {
   assert.equal(llm.resolveModel("main"), "openai/gpt-oss-20b");
   assert.equal(llm.resolveModel("guard"), "qwen/qwen3.8-27b");

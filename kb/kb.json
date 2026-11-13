@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-04",
+  "updated": "2026-11-13",
   "profile": {
     "id": "profile",
     "source": "owner",
@@ -18,7 +18,7 @@
   "about": {
     "id": "about",
     "source": "resume",
-    "updated": "2026-11-04",
+    "updated": "2026-11-13",
     "paragraphs": [
       "I'm an **AI & Agentic Automation Engineer** at **LTIMindtree**, working on enterprise Agentic AI and intelligent automation for a Microsoft project, Agentic Factory Operations.",
       "My work focuses on **Copilot Studio** agents integrated with **Power Automate** and Microsoft 365 services. I ground their answers with Dataverse, SharePoint and Power BI semantic models, and integrate SharePoint, Outlook and Microsoft Graph through Power Automate.",

@@ -88,8 +88,8 @@ actually work, without printing any secret.
 
 | Variable       | Required | Description                                             |
 | -------------- | -------- | ------------------------------------------------------- |
-| `LLM_PROVIDER` | no       | `groq` (default), `mistral`, or `gemini`.               |
-| `LLM_API_KEY`  | yes      | API key for the chosen provider.                        |
+| `LLM_PROVIDER` | no       | `groq` (default), `mistral`, `gemini`, or `ollama` (a local model, for free test runs; no key needed). |
+| `LLM_API_KEY`  | yes      | API key for the chosen provider (not needed for `ollama`). |
 | `LLM_MODEL`    | no       | Model that writes answers (`openai/gpt-oss-20b` on Groq). |
 | `GUARD_MODEL`  | no       | Input-guard model (`qwen/qwen3.8-27b` on Groq).         |
 | `PLAN_MODEL`   | no       | Tool-planner model (`qwen/qwen3.8-27b` on Groq).        |
@@ -299,14 +299,43 @@ So a visitor never sees the site say one thing and the assistant another. When t
 resume or LinkedIn disagrees with `kb.json`, `npm run kb:check` tells you, and you
 decide which is right and update it.
 
+#### How drift is prevented and caught
+
+| Guard | What it stops | Where |
+| --- | --- | --- |
+| One record | The site and the assistant read `kb.json` (plus the merged project cards), so there is no second copy to forget. | `lib/kb.js`, `lib/site-content.js` |
+| Parity tests | The site and each assistant tool give the same certificates, education, skills, projects, roles, dates and contact details; every fact the site shows is in the assistant's knowledge text; the page, `/data/site.json` and `/api/health` carry the same content version. | `test/parity.test.js` (in `npm test`) |
+| Hard-coded-fact scan | Fails if server code, scripts, pages or stylesheets contain a typed-in copy of a name, e-mail, employer, school, certificate or project. | `test/parity.test.js` |
+| Drift check | Compares `kb.json` with the LinkedIn snapshot, the resume and the project cards. | `npm run kb:check` |
+| GitHub check | Compares kb.json's projects with GitHub (a renamed repository, new text, a project added or removed). | `npm run kb:sync -- --check` |
+| Automatic runs | The offline drift check on every push; the full check (with the live resume and GitHub) every Wednesday, and GitHub emails you when it fails. | `ci.yml`, `drift.yml` |
+
+Each drift finding has a kind, which decides whether it can fail a run:
+
+| Kind | Meaning | Example | Fails a run? |
+| --- | --- | --- | --- |
+| `conflict` | A witness contradicts `kb.json`. | The resume shows a role start date that `kb.json` does not have; a different e-mail; a missing certificate. | with `--strict` |
+| `stale` | Something is old, or an upstream copy lags. | A LinkedIn export older than 90 days; a project card linking to a renamed repository. | with `--strict --stale` |
+| `gap` | A witness has something the site does not show. | A resume skill or project that is not on the site. | never (often deliberate) |
+| `note` | A check could not run. | No resume configured. | never |
+
+A role's start date matches if it is **either** the job's start or the project's
+start, since both are in `kb.json`. Resume text that could be private (project
+names, a different address) is never printed in the message, so it stays out of
+shared logs; add `--details` when running it yourself to see it.
+
+Options: `npm run kb:check -- --offline` (nothing is fetched), `-- --details`,
+`-- --strict`, `-- --strict --stale`. On GitHub Actions every warning is also an
+annotation.
+
 ### Keeping the knowledge base current
 
 | What changed | What to do | Effort |
 | --- | --- | --- |
 | Resume (extra skills, project lines, what "summarise his resume" shows) | Edit the Google Doc. Role, dates, skills and certifications that visitors see come from `kb.json`, not the resume. | Live, nothing else |
 | New certification / job / skill on LinkedIn | Download LinkedIn's **Basic** data export, extract it, run `npm run kb:linkedin -- "<folder>"`, review `git diff kb/kb.json`, commit. | About 2 min |
-| New or changed GitHub repo | `npm run kb:sync` (add `-- --dry` to preview). | 1 command |
-| "Is anything out of date?" | `npm run kb:check` — flags a LinkedIn snapshot older than 90 days and any difference between the live resume and the KB's certifications. | 1 command |
+| New or changed GitHub repo | `npm run kb:sync` (add `-- --dry` to preview, or `-- --check` to only compare). | 1 command |
+| "Is anything out of date?" | `npm run kb:check` — compares `kb.json` with the LinkedIn snapshot (roles, dates, schools), the live resume (certificates, roles and dates, skills, projects, contact details) and the project cards. See "How drift is prevented and caught" above. It also runs by itself every week. | 1 command |
 
 LinkedIn cannot be read automatically (its API exposes only name/headline to an
 app like this, and scraping is against its terms), so the export is the
@@ -357,10 +386,10 @@ lib/
 kb/kb.json             Canonical content record (profile, about, experience, skills, education, credentials, facts, projects, LinkedIn)
 views/index.html       Page template. Deliberately NOT under public/, so no URL can serve it unprocessed
 scripts/
-  sync-kb-projects.js  `npm run kb:sync` — refresh kb.json projects from GitHub
+  sync-kb-projects.js  `npm run kb:sync` — refresh kb.json projects from GitHub (`-- --check` only compares)
   import-linkedin.js   `npm run kb:linkedin` — import a LinkedIn export
   linkedin.config.json Import decisions that survive re-imports
-  check-kb.js          `npm run kb:check` — staleness / drift report
+  check-kb.js          `npm run kb:check` — drift report (conflict / stale / gap), `--strict` for CI
   check-env.js         `npm run check:env [-- --live]` — is the configuration ready to deploy?
   eval-live.js         `npm run eval:live` — real-model evaluation with release gates
 public/
@@ -376,7 +405,7 @@ public/
     projects.json      Project cards (auto-generated by the n8n automation)
 automation/            n8n workflow + launcher that syncs project cards from GitHub
 test/                  node:test suites (+ helpers/ stub + fixtures, golden/*.json cases)
-.github/workflows/     ci.yml (offline tests on push/PR) and eval.yml (live model evaluation)
+.github/workflows/     ci.yml (offline tests + drift check on push/PR), eval.yml (live model evaluation), drift.yml (weekly drift check)
 vercel.json            Vercel routing
 ```
 
@@ -388,7 +417,7 @@ vercel.json            Vercel routing
 
 | Command | Needs keys? | What it checks |
 | --- | --- | --- |
-| `npm test` | no | ~400 offline tests: units, integration against a fake Upstash, the **golden set**, the failure matrix, observability, the site content and the front end (rendering and XSS safety). All model calls are stubbed. Runs on every push/PR in CI (Node 20 and 22). |
+| `npm test` | no | ~500 offline tests: units, integration against a fake Upstash, the **golden set**, the failure matrix, observability, the site content and the front end (rendering and XSS safety), and the **parity and drift guards**. All model calls are stubbed. Runs on every push/PR in CI (Node 20 and 22). |
 | `npm run check:env` | no | Environment variables and `kb.json`: what is missing or malformed. |
 | `npm run check:env -- --live` | yes | Also the real services: key accepted, every configured model still available (catches a **retired model**), Redis reachable, the resume doc fetchable and its sections found, the PDF export returning a real PDF, drift between the resume and `kb.json`. It always downloads the doc fresh (never the app's cached copy) and has no side effects. |
 | `npm run eval:live` | yes | The golden cases against the **real models** (about 15–20 min, paced for free-tier limits) with release gates. Also a manual/weekly GitHub workflow. |
@@ -436,10 +465,35 @@ about 8,000 per minute). Run the suites you changed, not everything, and don't
 repeat a full run within a day. When the allowance is gone, the evaluator stops
 with a "rate limit" error instead of reporting false failures.
 
+**Free runs with a local model (Ollama).** To check that the pipeline and the
+evaluator work without spending any API tokens, run a model on your own computer
+(install [Ollama](https://ollama.com), then `ollama pull llama3.2`). In PowerShell:
+
+```powershell
+$env:LLM_PROVIDER="ollama"; $env:LLM_MODEL="llama3.2"; $env:GUARD_MODEL="llama3.2"
+$env:PLAN_MODEL="llama3.2"; $env:VERIFY_MODEL="llama3.2"; $env:PROMPT_GUARD_MODEL="off"
+npm run eval:live
+```
+
+The evaluator loads the model first, skips the free-tier pauses, and records a suite
+that cannot get a usable answer as a failed critical case instead of stopping. A full
+run takes about 3 minutes. **This is a smoke test, not a release check.** A small
+model is a weak judge (`llama3.2` misses injection attempts and plans tools poorly),
+and the assistant's prompt is about 3,600 tokens before tool results are added, which
+is close to Ollama's default 4,096-token window (raise it with the
+`OLLAMA_CONTEXT_LENGTH` environment variable when starting Ollama). Run the real
+models before a release.
+
 ### CI (GitHub Actions)
 
-- **`ci.yml`**: `npm test` on Node 20 and 22 for every push and pull request.
-  Offline, no secrets, so forks work.
+- **`ci.yml`**: `npm test` on Node 20 and 22 for every push and pull request, then
+  the offline drift check (`kb:check --offline --strict`). Offline, no secrets, so
+  forks work. The parity and hard-coded-fact tests are part of `npm test`.
+- **`drift.yml`**: the full drift check, **manual or Wednesdays 05:00 UTC**. It
+  compares `kb.json` with the live resume, the LinkedIn snapshot, the project cards
+  and GitHub, and **fails (so GitHub emails you) on a contradiction or on stale
+  data**. It changes nothing. Optional repository secret `RESUME_DOC_URL` (the same
+  link as in Vercel); without it the resume is skipped and the run says so.
 - **`eval.yml`**: the live evaluation, **manual or Mondays 05:00 UTC** (catches
   retired models and provider drift). Needs a repository secret `LLM_API_KEY`
   (and optionally `LLM_MODEL`, `GUARD_MODEL`, `PLAN_MODEL`, `VERIFY_MODEL`). It never

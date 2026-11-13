@@ -81,7 +81,9 @@ const cases = {
 };
 
 const THRESHOLDS = { suitePassRate: 0.9, p95Ms: 12000, avgTokensPerTurn: 7000 };
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// A local Ollama model has no per-minute token limits, so the free-tier pauses are skipped for it.
+const LOCAL = (process.env.LLM_PROVIDER || "").toLowerCase() === "ollama";
+const sleep = (ms) => new Promise((r) => setTimeout(r, LOCAL ? 0 : ms));
 const pad = (s, n) => String(s).padEnd(n).slice(0, n);
 const re = (source) => new RegExp(source, "i");
 
@@ -109,7 +111,8 @@ async function withRetry(fn) {
       return await fn();
     } catch (err) {
       const transient = err.status === 503 || err.status === 429 || (err.status === 502 && /could not reach/i.test(String(err.message)));
-      if (!transient || attempt >= waits.length) throw err;
+      // A local model has no rate limits, and asking it again for a verdict it could not give changes nothing.
+      if (!transient || LOCAL || attempt >= waits.length) throw err;
       console.log(`     (rate limited or connection dropped; waiting ${waits[attempt] / 1000}s, retry ${attempt + 1}/${waits.length})`);
       await sleep(waits[attempt]);
     }
@@ -275,9 +278,21 @@ function summarize(ran) {
 
   const started = Date.now();
   console.log(`resume: ${realResume ? "LIVE document" : "fixed fixture"}   models: ${["main", "guard", "plan", "verify"].map((s) => `${s}=${llm.resolveModel(s)}`).join(" ")}\n`);
+  if (LOCAL) {
+    console.log("LOCAL MODEL (ollama): free, with no pauses. It shows that the pipeline and this harness work. A small local model is not a reliable judge, so these gates do not replace a run on the real models before a release.");
+    console.log(`loading into memory: ${(await llm.warmUp()).join(", ")}\n`);
+  }
   for (const name of ran) {
     console.log(`\n==================== ${name.toUpperCase()} ====================`);
-    await SUITES[name]();
+    try {
+      await SUITES[name]();
+    } catch (err) {
+      // Against the real models an outage must stop the run (nothing can be judged). A small local model
+      // simply fails to give a usable answer sometimes: record that, and carry on with the other suites.
+      if (!LOCAL) throw err;
+      record(name, "(suite stopped early)", false, { critical: true, detail: err.message });
+      console.log(`FAIL ${name} stopped early: ${err.message}`);
+    }
   }
 
   const { suites, gates, perf } = summarize(ran);

@@ -1,0 +1,57 @@
+name: Drift check
+
+# Compares kb/kb.json (what the website AND the assistant show) with the live resume, the LinkedIn
+# snapshot, the project cards and GitHub. It changes nothing: when something is out of date or
+# contradicts the site, the run fails, and GitHub emails you. Details are in the run log.
+#
+# Optional repository secret:  RESUME_DOC_URL   (the same published Google Doc link used in Vercel)
+# Without it the resume comparison is skipped, and the run says so.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 3" # Wednesdays 05:00 UTC (the live model evaluation runs on Mondays)
+
+permissions:
+  contents: read
+
+concurrency:
+  group: drift-check
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # No secrets in this step: dependency install scripts must never see them.
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # Fails on a contradiction (a date, role, school, certificate or address that differs) and on
+      # data that has gone stale (an old LinkedIn export, a card linking to a renamed repository).
+      # Gaps, such as a resume skill the site does not show, are only listed.
+      - name: Compare kb.json with the resume, LinkedIn and the project cards
+        env:
+          RESUME_DOC_URL: ${{ secrets.RESUME_DOC_URL }}
+        run: |
+          if [ -z "$RESUME_DOC_URL" ]; then
+            echo "::warning::The RESUME_DOC_URL secret is not set, so the resume was not compared."
+          fi
+          node scripts/check-kb.js --strict --stale
+
+      # Even if the step above failed, so a single run shows every problem.
+      - name: Compare project details with GitHub
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/sync-kb-projects.js --check

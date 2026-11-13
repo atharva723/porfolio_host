@@ -42,3 +42,9 @@ jobs:
       # The assistant's knowledge base must always be valid and readable.
       - name: Validate knowledge base
         run: node -e "const k=require('./lib/kb'); const d=k.load(); console.log('kb ok, version', k.version(d))"
+
+      # kb.json against its own LinkedIn snapshot and the project cards (no network, no secrets).
+      # A contradiction fails the build; anything softer shows up as a yellow annotation.
+      - name: Check for drift
+        if: matrix.node == 22
+        run: node scripts/check-kb.js --offline --strict
